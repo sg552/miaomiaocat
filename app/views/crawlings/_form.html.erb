@@ -1,0 +1,29 @@
+<%= form_for(@crawling) do |f| %>
+  <% if @crawling.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@crawling.errors.count, "error") %> prohibited this crawling from being saved:</h2>
+
+      <ul>
+      <% @crawling.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :url %><br />
+    <%= f.text_area :url %>
+  </div>
+  <div class="field">
+    <%= f.label :key_word %><br />
+    <%= f.text_field :key_word %>
+  </div>
+  <div class="field">
+    <%= f.label :result %><br />
+    <%= f.text_area :result %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
