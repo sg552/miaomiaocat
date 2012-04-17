@@ -44,7 +44,12 @@ task :fetch_message do
 </head>
 <tbody>
   }
+  #landlord_only = true
+  landlord_only = false
   file = File.new("district_names.txt")
+  url_suffix = landlord_only ? "chuzu/?ib=0" : "chuzu"
+  file_name = landlord_only ? "html_landlord.html" : "html_result.html"
+
   valid_links = []
   while( line = file.gets)
     valid_links << line.match("http.*\/")[0] if line.match("http.*\/")
@@ -56,7 +61,7 @@ task :fetch_message do
     # landlord only.
     #target_url = "#{link}chuzu/?ib=0&r=&mp="
     # both agent and landlord
-    target_url = "#{link}chuzu"
+    target_url = "#{link}#{url_suffix}"
     puts "opening : #{target_url}"
     doc = Nokogiri::HTML(open(target_url))
 
@@ -64,7 +69,7 @@ task :fetch_message do
       html_result << message
     end
   end
-  File.open("html_result.html", "w") do |f|
+  File.open(file_name, "w") do |f|
     f.write(html_prefix_content)
     f.write(html_result)
     f.write("</tbody></table></body></html>")
