@@ -1,0 +1,1 @@
+bundle exec rake fetch_message
