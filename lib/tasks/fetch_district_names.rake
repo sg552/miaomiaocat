@@ -47,7 +47,7 @@ task :fetch_message do
   #landlord_only = true
   landlord_only = false
   file = File.new("district_names.txt")
-  url_suffix = landlord_only ? "chuzu/?ib=0" : "chuzu"
+  url_suffix = landlord_only ? "chuzu/?ib=0" : "chuzu/?ib=1"
   file_name = landlord_only ? "html_landlord.html" : "html_result.html"
 
   valid_links = []
