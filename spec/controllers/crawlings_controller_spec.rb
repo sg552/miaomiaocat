@@ -16,12 +16,9 @@ describe CrawlingsController do
     {}
   end
 
-  describe "GET index" do
-    it "assigns all crawlings as @crawlings" do
-      crawling = Crawling.create! valid_attributes
-      get :index, {}, valid_session
-      assigns(:crawlings).should eq([crawling])
-    end
+  it "should GET index" do
+    get :index
+    response.should be_success
   end
 
   describe "GET show" do
