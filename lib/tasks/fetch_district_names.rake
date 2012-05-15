@@ -54,9 +54,9 @@ task :fetch_message do
   valid_links.each do |link|
     # only 1 page considered
     # landlord only.
-    #target_url = "#{link}chuzu/?ib=0&r=&mp="
+    target_url = "#{link}chuzu/?ib=0&r=&mp="
     # both agent and landlord
-    target_url = "#{link}chuzu"
+    #target_url = "#{link}chuzu/?ib=1"
     puts "opening : #{target_url}"
     doc = Nokogiri::HTML(open(target_url))
 
@@ -64,7 +64,8 @@ task :fetch_message do
       html_result << message
     end
   end
-  File.open("html_result.html", "w") do |f|
+  File.open("html_landlords.html", "w") do |f|
+  #File.open("html_vendors.html", "w") do |f|
     f.write(html_prefix_content)
     f.write(html_result)
     f.write("</tbody></table></body></html>")
