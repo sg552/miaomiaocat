@@ -1,4 +1,8 @@
 MiaomiaoCat::Application.routes.draw do
+  resources :source_websites
+
+  resources :items
+
   resources :crawlings
 
   # The priority is based upon order of creation:

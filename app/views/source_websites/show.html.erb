@@ -1,0 +1,30 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Name:</b>
+  <%= @source_website.name %>
+</p>
+
+<p>
+  <b>Url:</b>
+  <%= @source_website.url %>
+</p>
+
+<p>
+  <b>Identifier:</b>
+  <%= @source_website.identifier %>
+</p>
+
+<p>
+  <b>Last visited on:</b>
+  <%= @source_website.last_visited_on %>
+</p>
+
+<p>
+  <b>Last fetched at:</b>
+  <%= @source_website.last_fetched_at_id %>
+</p>
+
+
+<%= link_to 'Edit', edit_source_website_path(@source_website) %> |
+<%= link_to 'Back', source_websites_path %>
