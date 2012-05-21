@@ -16,15 +16,18 @@ class SourceWebsite
   field :price_css, :type => String
   field :next_page_css, :type => String
   field :previous_page_css, :type => String
+  field :status, :type => String
+  STATUS_BEING_FETCHED = "being fetched"
+
   has_many :items
-  def dig_for_58
-    urls = ["http://bj.58.com/zufang/?final=1&key=%E4%B8%9C%E7%9B%B4%E9%97%A8",
-      "http://bj.58.com/zufang/?final=1&key=%E6%9C%9B%E4%BA%AC"]
-    urls.each do |url|
-      doc = Nokogiri::HTML(open(url))
-      doc.css("table.tblist tr[logr]").each do | raw_item |
-        Item.create_by_html(raw_item, SourceWebsite.where(:name => "58同城").first)
-      end
+  require 'open-uri'
+  def fetch
+    update_attribute(:status, STATUS_BEING_FETCHED)
+    self.status = STATUS_BEING_FETCHED
+    doc = Nokogiri::HTML(open(url_where_fetch_starts))
+    doc.css(items_list_css).each do | raw_item |
+      Item.create_by_html(raw_item, self)
     end
+    update_attribute(:status, nil)
   end
 end
