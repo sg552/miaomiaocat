@@ -4,7 +4,7 @@ require "action_controller/railtie"
 require "action_mailer/railtie"
 require "active_resource/railtie"
 require "rails/test_unit/railtie"
-require "sprockets/railtie" # Uncomment this line for Rails 3.1+
+require "sprockets/railtie"
 
 require 'log4r'
 require 'log4r/yamlconfigurator'
@@ -73,3 +73,4 @@ module MiaomiaoCat
     config.mongoid.logger = Log4r::Logger["mongoid"]
   end
 end
+

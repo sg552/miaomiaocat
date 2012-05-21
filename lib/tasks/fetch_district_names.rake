@@ -1,4 +1,5 @@
 require 'open-uri'
+require 'lib/claw'
 desc "fetch district names"
 task :fetch_name do
   base_url = "http://bj.58.com/xiaoqu/wangjing/?page="
@@ -75,4 +76,9 @@ task :fetch_message do
     f.write("</tbody></table></body></html>")
   end
   puts "done"
+end
+
+task :dig_for_58 do
+  claw = Claw.new
+  Claw.new.dig_for_58
 end

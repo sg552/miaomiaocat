@@ -3,6 +3,7 @@ require 'spec_helper'
 describe Item do
   before do
     @item = create(:item)
+    @source_website = create(:source_website)
   end
   it "should load factory" do
     @item.source_website.should == SourceWebsite.find(@item.source_website_id)
@@ -19,7 +20,7 @@ describe Item do
  <td class="tc">今天</td>
  </tr>
     }
-    Item.create_by_html(Nokogiri::HTML content)
+    Item.create_by_html(Nokogiri::HTML(content), @source_website)
     Item.last.original_url.should == original_url
   end
 end
