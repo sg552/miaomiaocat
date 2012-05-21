@@ -20,29 +20,59 @@
     <%= f.text_field :url %>
   </div>
   <div class="field">
-    <%= f.label :identifier %><br />
-    <%= f.text_field :identifier %>
+    <%= f.label :url_where_fetch_starts %><br />
+    <%= f.text_field :url_where_fetch_starts %>
   </div>
   <div class="field">
-    <%= f.label :last_visited_on %><br />
-    <%= f.text_field :last_visited_on %>
+    <%= f.label :last_fetched_on %><br />
+    <%= f.text_field :last_fetched_on %>
   </div>
   <div class="field">
-    <%= f.label :last_fetched_at_id %><br />
-    <%= f.text_field :last_fetched_at_id %>
+    <%= f.label :last_fetched_item_url %><br />
+    <%= f.text_field :last_fetched_item_url %>
   </div>
 
   <div class="field">
-    <%= f.label :information_list_css%><br />
-    <%= f.text_field :information_list_css%>
+    <%= f.label :items_list_css%><br />
+    <%= f.text_field :items_list_css%>
   </div>
   <div class="field">
-    <%= f.label :original_url_css%><br />
-    <%= f.text_field :original_url_css%>
+    <%= f.label :item_detail_page_url_css%><br />
+    <%= f.text_field :item_detail_page_url_css%>
   </div>
+
+  <div class="field">
+    <%= f.label :price_css%><br />
+    <%= f.text_field :price_css%>
+  </div>
+  <div class="field">
+    <%= f.label :item_published_at_css%><br />
+    <%= f.text_field :item_published_at_css%>
+  </div>
+  <div class="field">
+    <%= f.label :max_pages_per_fetch%><br />
+    <%= f.text_field :max_pages_per_fetch%>
+  </div>
+  <div class="field">
+    <%= f.label :max_items_per_fetch%><br />
+    <%= f.text_field :max_items_per_fetch%>
+  </div>
+  <div class="field">
+    <%= f.label :next_page_css%><br />
+    <%= f.text_field :next_page_css%>
+  </div>
+  <div class="field">
+    <%= f.label :previous_page_css%><br />
+    <%= f.text_field :previous_page_css%>
+  </div>
+
   <div class="field">
     <%= f.label :sample_item_content%><br />
     <%= f.text_area :sample_item_content%>
+  </div>
+  <div class="field">
+    <%= f.label :sample_items_list_content%><br />
+    <%= f.text_area :sample_items_list_content%>
   </div>
   <div class="actions">
     <%= f.submit %>

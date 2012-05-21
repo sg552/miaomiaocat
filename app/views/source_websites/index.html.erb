@@ -1,27 +1,28 @@
-<h1>Listing source_websites</h1>
+<h1>来源站点</h1>
 
-<table>
+<table class="table table-striped">
   <tr>
-    <th>Name</th>
-    <th>Url</th>
-    <th>Identifier</th>
-    <th>Last visited on</th>
-    <th>Last fetched at</th>
-    <th></th>
-    <th></th>
-    <th></th>
+    <th>名字</th>
+    <th>开始URL</th>
+    <th>最近一次抓取的时间</th>
+    <th>最近一次抓取的信息</th>
+    <th>信息列表页css</th>
+    <th>信息详细页css</th>
+    <th>信息发布时间css</th>
+    <th>操作</th>
   </tr>
 
 <% @source_websites.each do |source_website| %>
   <tr>
-    <td><%= source_website.name %></td>
-    <td><%= source_website.url %></td>
-    <td><%= source_website.identifier %></td>
-    <td><%= source_website.last_visited_on %></td>
-    <td><%= source_website.last_fetched_at_id %></td>
-    <td><%= link_to 'Show', source_website %></td>
-    <td><%= link_to 'Edit', edit_source_website_path(source_website) %></td>
-    <td><%= link_to 'Destroy', source_website, :confirm => 'Are you sure?', :method => :delete %></td>
+    <td><%= link_to source_website.name, source_website %></td>
+    <td><%= link_to source_website.url_where_fetch_starts, source_website.url_where_fetch_starts, :target => "_blank" %></td>
+    <td><%= source_website.last_fetched_on %></td>
+    <td><%= source_website.last_fetched_item_url %></td>
+    <td><%= source_website.items_list_css %></td>
+    <td><%= source_website.item_detail_page_url_css %></td>
+    <td><%= source_website.item_published_at_css %></td>
+    <td><%= link_to 'Edit', edit_source_website_path(source_website) %>
+    <%= link_to 'Destroy', source_website, :confirm => 'Are you sure?', :method => :delete %></td>
   </tr>
 <% end %>
 </table>
