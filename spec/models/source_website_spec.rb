@@ -48,6 +48,16 @@ describe SourceWebsite do
 
   end
   describe "advanced fetch: across pagination" do
+    it "should get_next_page_url and get_previous_page_url" do
+      current_page_url = @source_website.url_where_fetch_starts
+      @source_website.update_attribute(:next_page_css, ".pager .next")
+      next_page_url = @source_website.get_next_page_url
+      next_page_url.should_not be_nil
+
+      @source_website.update_attribute(:url_where_fetch_starts, next_page_url)
+      @source_website.get_previous_page_url.should == current_page_url
+    end
+
     it "consider the max_pages_per_fetch" do
       max_records_in_a_page = 37
       max_pages_per_fetch = 3
@@ -59,6 +69,25 @@ describe SourceWebsite do
 
   it "should get_items_list" do
     @source_website.get_items_list.size.should > 30
+  end
+  describe "private methods" do
+    it "should get_doc" do
+      @source_website.send(:get_doc).should_not be_nil
+      @source_website.update_attribute(:url_where_fetch_starts, "invalid address")
+      lambda { @source_website.send :get_doc }.should raise_error
+    end
+    it "should save_last_fetched_info" do
+      @source_website.update_attributes(:save_last_fetched_info => nil, :last_fetched_on => nil)
+      url = "this is the url of the last item"
+      @source_website.send(:save_last_fetched_info, url)
+      @source_website.last_fetched_item_url.should == url
+      @source_website.last_fetched_on.should_not be_nil
+    end
+    it "should get_base_domain_name_of_current_page" do
+      base_domain_name = "http://bj.58.com"
+      @source_website.update_attribute(:url_where_fetch_starts, base_domain_name + "/zufang?ooxxooxx")
+      @source_website.send(:get_base_domain_name_of_current_page).should == base_domain_name
+    end
   end
 
 end

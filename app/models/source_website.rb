@@ -45,13 +45,45 @@ class SourceWebsite
   end
 
   def get_items_list
-    # TODO use httparty instead
-    require 'open-uri'
-    doc = Nokogiri::HTML(open(url_where_fetch_starts))
+    doc = get_doc
     return doc.css(items_list_css)
   end
 
+  # dynamically define methods:
+  #get_next_page_url
+  #get_previous_page_url
+  #["next", "previous"].each do |some|
+  #  define_method :"get_#{some}_page_url" do
+  #    temp = send :"#{some}_page_css"
+  #    puts "css: #{temp}, var_name: #{some}_page_css"
+  #    href = get_doc.css(temp).attribute("href").to_s
+  #    result = href.start_with?("http") ? href : url + href
+  #    puts "result: #{result}"
+  #    return result
+  #  end
+  #end
+  def get_next_page_url
+    doc = get_doc
+    href = doc.css(next_page_css).attribute("href").to_s
+    result = href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
+  end
+  def get_previous_page_url
+    doc = get_doc
+    href = doc.css(next_page_css).attribute("href").to_s
+    result = href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
+  end
+
   private
+  def get_base_domain_name_of_current_page
+    require 'uri'
+    temp = URI.parse(url_where_fetch_starts)
+    "#{temp.scheme}://#{temp.host}"
+  end
+  def get_doc
+    # TODO use httparty instead
+    require 'open-uri'
+    return Nokogiri::HTML(open(url_where_fetch_starts))
+  end
   def save_last_fetched_info(original_url)
     update_attributes!(:last_fetched_item_url => original_url, :last_fetched_on => Time.now)
   end
