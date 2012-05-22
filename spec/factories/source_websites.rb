@@ -2,14 +2,16 @@
 
 FactoryGirl.define do
   factory :source_website do
-    name "58 in the same city"
-    url "www.58.com"
-    #identifier "integer"
-    last_visited_on "2012-05-16"
-    last_fetched_at_id "888"
-    last_fetched_item_url "http://bj.58.com/zufang/?final=1&key=%E4%B8%9C%E7%9B%B4%E9%97%A8"
-    #information_list_css "table.tblist"
-    #information_list_css ".t a[target='_blank']"
-    #published_at_css 'css(".tc").last.content'
+    name "58 the same city- wangjing"
+    url "http://www.58.com"
+    url_where_fetch_starts "http://bj.58.com/zufang/?final=1&key=%E6%9C%9B%E4%BA%AC"
+    items_list_css "table.tblist tr[logr]"
+    item_detail_page_url_css ".t a[target='_blank']"
+    price_css ".tc:nth-last-child(3)"
+    item_published_at_css ".tc:nth-last-child(1)"
+    max_pages_per_fetch 10
+    max_items_per_fetch 1000
+    next_page_css ".pager .prv"
+    previous_page_css ".pager .next"
   end
 end

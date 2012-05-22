@@ -20,14 +20,19 @@ class SourceWebsite
   STATUS_BEING_FETCHED = "being fetched"
 
   has_many :items
-  require 'open-uri'
-  def fetch
-    update_attribute(:status, STATUS_BEING_FETCHED)
-    self.status = STATUS_BEING_FETCHED
+  def fetch_items
+    # TODO use httparty instead
+    require 'open-uri'
     doc = Nokogiri::HTML(open(url_where_fetch_starts))
-    doc.css(items_list_css).each do | raw_item |
-      Item.create_by_html(raw_item, self)
-    end
+    doc.css(items_list_css).each { | raw_item | Item.create_by_html(raw_item, self) }
+  end
+
+  # ... a test for "around alias"
+  alias_method  :original_fetch_items, :fetch_items
+  def fetch_items
+    update_attribute(:status, STATUS_BEING_FETCHED)
+    original_fetch_items
     update_attribute(:status, nil)
   end
+
 end
