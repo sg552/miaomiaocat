@@ -4,6 +4,7 @@ class SourceWebsite
   field :name, :type => String
   field :url, :type => String
   field :url_where_fetch_starts, :type => String
+  field :url_being_fetched, :type => String
   field :last_fetched_on, :type => DateTime
   field :last_fetched_item_url, :type => String
   field :items_list_css, :type => String
@@ -21,20 +22,32 @@ class SourceWebsite
 
   has_many :items
   def fetch_items(options ={})
-    index = 0
-    items = get_items_list
-    items.each do | raw_item |
-      original_url = Item.get_original_url(raw_item, self)
-      break if options[:enable_max_items_per_fetch] == true && index == max_items_per_fetch.to_i
-      break if options[:enable_last_fetched_item_url] == true && original_url == last_fetched_item_url
-      Item.create_by_html(raw_item, self)
-      index += 1
-      save_last_fetched_info(original_url) if index == items.size
+    @items_count_of_this_fetch = 0
+    @pages_count_for_this_fetch = 1
+    url_being_fetched = url_where_fetch_starts
+    loop do
+      next_page_url = get_next_page_url(url_being_fetched)
+      save_items_for_current_url_that_being_fetched(url_being_fetched, options)
+      url_being_fetched = next_page_url
+      @pages_count_for_this_fetch += 1
+      break if should_stop_reading_for_the_next_page?(next_page_url, options)
     end
   end
 
   # ... a test for "around alias"
   alias_method  :original_fetch_items, :fetch_items
+
+  # This is the core method for fetching items
+  #
+  # ==== Examples
+  #
+  # Examples please refer to the specs.
+  #
+  # ==== Options
+  #
+  # * <tt>:enable_max_items_per_fetch</tt> -  true/false , default is false.
+  # * <tt>:enable_last_fetched_item_url</tt> - true/false, default is false.
+  # * <tt>:enable_max_pages_per_fetch</tt> - true/false, default is false.
   def fetch_items(options = {})
     if self.status == STATUS_BEING_FETCHED
       raise "the source_website #{self.name} is being fetched... please stop it if you want another fetch"
@@ -44,31 +57,47 @@ class SourceWebsite
     update_attribute(:status, nil)
   end
 
-  def get_items_list
-    doc = get_doc
-    return doc.css(items_list_css)
+  def get_items_list(target_url = url_where_fetch_starts)
+    return get_doc(target_url).css(items_list_css)
   end
 
   # dynamically define methods:
   # get_next_page_url
   # get_previous_page_url
   ["next", "previous"].each do |some|
-    define_method :"get_#{some}_page_url" do
-      href = get_doc.css(send(:"#{some}_page_css")).attribute("href").to_s
+    define_method :"get_#{some}_page_url" do |current_page_url|
+      target_element = get_doc(current_page_url).css(send(:"#{some}_page_css"))
+      return nil if target_element.blank?
+      href = target_element.attribute("href").to_s
       return href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
     end
   end
 
   private
+  def should_stop_reading_for_the_next_page?(next_page_url, options)
+    return next_page_url.blank? ||
+      (options[:enable_max_pages_per_fetch] == true && @pages_count_for_this_fetch > max_pages_per_fetch)
+  end
+  def save_items_for_current_url_that_being_fetched(current_page_url, options)
+    items = get_items_list(current_page_url)
+    items.each do | raw_item |
+      original_url = Item.get_original_url(raw_item, self)
+      break if options[:enable_max_items_per_fetch] == true && @items_count_of_this_fetch == max_items_per_fetch.to_i
+      break if options[:enable_last_fetched_item_url] == true && original_url == last_fetched_item_url
+      Item.create_by_html(raw_item, self)
+      @items_count_of_this_fetch += 1
+      save_last_fetched_info(original_url) if @items_count_of_this_fetch == items.size
+    end
+  end
   def get_base_domain_name_of_current_page
     require 'uri'
     temp = URI.parse(url_where_fetch_starts)
     "#{temp.scheme}://#{temp.host}"
   end
-  def get_doc
+  def get_doc(target_url = url_where_fetch_starts)
     # TODO use httparty instead
     require 'open-uri'
-    return Nokogiri::HTML(open(url_where_fetch_starts))
+    return Nokogiri::HTML(open(target_url))
   end
   def save_last_fetched_info(original_url)
     update_attributes!(:last_fetched_item_url => original_url, :last_fetched_on => Time.now)

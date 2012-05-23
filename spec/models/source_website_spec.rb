@@ -40,7 +40,7 @@ describe SourceWebsite do
       total_items_count = Item.all.size
       Item.delete_all
 
-      last_fetched_item_url = Item.get_original_url @source_website.get_items_list[-3], @source_website
+      last_fetched_item_url = Item.get_original_url(@source_website.get_items_list[-3], @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
       @source_website.fetch_items :enable_last_fetched_item_url => true
       Item.all.size.should == total_items_count - 3
@@ -48,28 +48,45 @@ describe SourceWebsite do
 
   end
   describe "advanced fetch: across pagination" do
-    it "should get_next_page_url and get_previous_page_url" do
-      # let's start with the 2nd page
+    it "should get_next_page_url and get_previous_page_url for valid url " do
       @source_website.update_attribute(:next_page_css, ".pager .next")
-      current_page_url = @source_website.get_next_page_url
-      @source_website.update_attribute(:url_where_fetch_starts, current_page_url)
+      @source_website.update_attribute(:previous_page_css, ".pager .prv")
 
-      # its next page should be the 3rd page
-      next_page_url = @source_website.get_next_page_url
-      next_page_url.should_not be_nil
+      # let's start with the 2nd page
+      page_2_url = @source_website.get_next_page_url(@source_website.url_where_fetch_starts)
+      page_3_url = @source_website.get_next_page_url(page_2_url)
+      page_3_url.should_not be_nil
 
       # then should get 2nd page as the 'previous page'
-      @source_website.update_attribute(:previous_page_css, ".pager .prv")
-      @source_website.update_attribute(:url_where_fetch_starts, next_page_url)
-      @source_website.get_previous_page_url.should == current_page_url
+      @source_website.get_previous_page_url(page_3_url).should == page_2_url
+    end
+    it "should return nil for next_page_url/previous_page_url for invalid page" do
+      @source_website.update_attribute(:next_page_css, ".pager .next")
+      url_without_next_page_css = "http://bj.58.com/zufang/?final=1&key=notexist&searchtype=3&sourcetype=5"
+      @source_website.get_next_page_url(url_without_next_page_css).should be_nil
     end
 
     it "consider the max_pages_per_fetch" do
       max_records_in_a_page = 37
       max_pages_per_fetch = 3
-      @source_website.update_attribute(:max_pages_per_fetch, max_pages_per_fetch)
-      @source_website.fetch_items
+      @source_website.update_attributes(:next_page_css => ".pager .next",
+        :max_pages_per_fetch => max_pages_per_fetch)
+      @source_website.fetch_items(:enable_max_pages_per_fetch => true)
       (2*max_records_in_a_page .. 3*max_records_in_a_page).include?(Item.all.size).should == true
+    end
+
+    it "should_stop_reading_for_the_next_page if next_page_url is blank, or reached max_pages_per_fetch" do
+      @source_website.send(:"should_stop_reading_for_the_next_page?", nil, {}).should == true
+      max_pages_per_fetch = 3
+      option = {:enable_max_pages_per_fetch => true}
+
+      @source_website.update_attribute(:max_pages_per_fetch, max_pages_per_fetch)
+      @source_website.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch - 1)
+      @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_addr", option).should == false
+      @source_website.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch )
+      @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_addr", option).should == false
+      @source_website.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch + 1)
+      @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_addr", option).should == true
     end
   end
 
@@ -79,8 +96,7 @@ describe SourceWebsite do
   describe "private methods" do
     it "should get_doc" do
       @source_website.send(:get_doc).should_not be_nil
-      @source_website.update_attribute(:url_where_fetch_starts, "invalid address")
-      lambda { @source_website.send :get_doc }.should raise_error
+      lambda { @source_website.send :get_doc, "invalid address" }.should raise_error
     end
     it "should save_last_fetched_info" do
       @source_website.update_attributes(:save_last_fetched_info => nil, :last_fetched_on => nil)
