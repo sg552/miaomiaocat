@@ -11,7 +11,7 @@ FactoryGirl.define do
     item_published_at_css ".tc:nth-last-child(1)"
     max_pages_per_fetch 10
     max_items_per_fetch 1000
-    next_page_css ".pager .prv"
-    previous_page_css ".pager .next"
+    next_page_css ".pager .next"
+    previous_page_css ".pager .prv"
   end
 end

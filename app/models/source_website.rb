@@ -25,12 +25,14 @@ class SourceWebsite
     @items_count_of_this_fetch = 0
     @pages_count_for_this_fetch = 1
     url_being_fetched = url_where_fetch_starts
-    loop do
-      next_page_url = get_next_page_url(url_being_fetched)
-      save_items_for_current_url_that_being_fetched(url_being_fetched, options)
-      url_being_fetched = next_page_url
-      @pages_count_for_this_fetch += 1
-      break if should_stop_reading_for_the_next_page?(next_page_url, options)
+    catch(:stop_fetching) do
+      loop do
+        next_page_url = get_next_page_url(url_being_fetched)
+        save_items_for_current_url_that_being_fetched(url_being_fetched, options)
+        url_being_fetched = next_page_url
+        @pages_count_for_this_fetch += 1
+        break if should_stop_reading_for_the_next_page?(next_page_url, options)
+      end
     end
   end
 
@@ -82,8 +84,11 @@ class SourceWebsite
     items = get_items_list(current_page_url)
     items.each do | raw_item |
       original_url = Item.get_original_url(raw_item, self)
-      break if options[:enable_max_items_per_fetch] == true && @items_count_of_this_fetch == max_items_per_fetch.to_i
-      break if options[:enable_last_fetched_item_url] == true && original_url == last_fetched_item_url
+      if (options[:enable_max_items_per_fetch] == true &&
+        @items_count_of_this_fetch == max_items_per_fetch.to_i ) ||
+        (options[:enable_last_fetched_item_url] == true && original_url == last_fetched_item_url)
+        throw :stop_fetching
+      end
       Item.create_by_html(raw_item, self)
       @items_count_of_this_fetch += 1
       save_last_fetched_info(original_url) if @items_count_of_this_fetch == items.size

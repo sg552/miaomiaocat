@@ -9,6 +9,9 @@ describe SourceWebsite do
   end
 
   describe "basic fetch" do
+    before do
+      @source_website.update_attribute(:next_page_css, nil)
+    end
     it "basic : should fetch from remote website" do
       @source_website.fetch_items
       Item.all.size.should > 30
@@ -35,17 +38,13 @@ describe SourceWebsite do
 
 
     it "consider the last_fetched_item_url" do
-      # first of all, get the total items in a page
-      @source_website.fetch_items
-      total_items_count = Item.all.size
-      Item.delete_all
+      total_items_count = @source_website.get_items_list.size
 
       last_fetched_item_url = Item.get_original_url(@source_website.get_items_list[-3], @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
       @source_website.fetch_items :enable_last_fetched_item_url => true
       Item.all.size.should == total_items_count - 3
     end
-
   end
   describe "advanced fetch: across pagination" do
     it "should get_next_page_url and get_previous_page_url for valid url " do
@@ -87,6 +86,26 @@ describe SourceWebsite do
       @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_addr", option).should == false
       @source_website.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch + 1)
       @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_addr", option).should == true
+    end
+    it "should consider the last_fetched_item_url, assume the last_fetched_item_url is on 2nd page,
+        the last but 8 ( -9 in Chinese ^_^ )" do
+      pending ".."
+      @source_website.update_attribute(:next_page_css, ".pager .next")
+      next_page_url = @source_website.get_next_page_url(@source_website.url_where_fetch_starts)
+      last_fetched_item_url = Item.get_original_url(@source_website.get_items_list(next_page_url)[-9],
+        @source_website)
+      @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
+      @source_website.fetch_items(:enable_last_fetched_item_url => true)
+
+      max_records_in_a_page = 37
+      Item.all.size.should < 2 * max_records_in_a_page
+    end
+    it "should consider the max_items_per_fetch, e.g. max_records_in_a_page is 37, and let's set the
+      max_items_per_fetch = 50  ( in page2), then the fetch should stop after fetch 50th item " do
+      max_items_per_fetch = 50
+      @source_website.update_attribute(:max_items_per_fetch, max_items_per_fetch)
+      @source_website.fetch_items :enable_max_items_per_fetch => true
+      Item.all.size.should == max_items_per_fetch
     end
   end
 
