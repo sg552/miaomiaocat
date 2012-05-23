@@ -49,11 +49,17 @@ describe SourceWebsite do
   end
   describe "advanced fetch: across pagination" do
     it "should get_next_page_url and get_previous_page_url" do
-      current_page_url = @source_website.url_where_fetch_starts
+      # let's start with the 2nd page
       @source_website.update_attribute(:next_page_css, ".pager .next")
+      current_page_url = @source_website.get_next_page_url
+      @source_website.update_attribute(:url_where_fetch_starts, current_page_url)
+
+      # its next page should be the 3rd page
       next_page_url = @source_website.get_next_page_url
       next_page_url.should_not be_nil
 
+      # then should get 2nd page as the 'previous page'
+      @source_website.update_attribute(:previous_page_css, ".pager .prv")
       @source_website.update_attribute(:url_where_fetch_starts, next_page_url)
       @source_website.get_previous_page_url.should == current_page_url
     end

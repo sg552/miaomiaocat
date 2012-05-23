@@ -69,7 +69,7 @@ class SourceWebsite
   end
   def get_previous_page_url
     doc = get_doc
-    href = doc.css(next_page_css).attribute("href").to_s
+    href = doc.css(previous_page_css).attribute("href").to_s
     result = href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
   end
 
