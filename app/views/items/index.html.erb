@@ -1,5 +1,10 @@
 <h1>租房信息列表</h1>
 
+<%= form_tag items_path, :method => :get, :class => "form-search" do %>
+  <%= text_field_tag "key_word", nil, :class => "input-medium search-query",
+    :placeholder=>"搜索条件，比如：东直门" %>
+  <%= submit_tag "搜索", :class => "btn" %>
+<% end %>
 <%= paginate @items, :theme => 'twitter-bootstrap' %>
 <table class="table table-striped">
   <thead>
