@@ -16,6 +16,15 @@ RSpec.configure do |config|
     Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
   }
 
+  # Use color in STDOUT
+  config.color_enabled = true
+
+  # Use color not only in STDOUT but also in pagers and files
+  config.tty = true
+
+  # Use the specified formatter
+  #:documentation ,:progress, :html, :textmate
+  config.formatter = :progress
 end
 
 
