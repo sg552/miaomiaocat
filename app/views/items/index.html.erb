@@ -1,11 +1,13 @@
 <h1>租房信息列表</h1>
 
+<%= paginate @items, :theme => 'twitter-bootstrap' %>
 <table class="table table-striped">
   <thead>
   <tr>
     <th>来源网站</th>
     <th>信息提要</th>
-    <th>抓取日期</th>
+    <th style="width:80px">抓取日期</th>
+    <th style="widht:80px; display:none">操作</th>
   </tr>
   </thead>
 
@@ -14,9 +16,12 @@
   <tr>
     <td><%= link_to item.source_website.try(:name), item.source_website.try(:url), :target => "_blank" %></td>
     <td><%= link_to item.content, item.original_url, :target => "_blank" %> </td>
-    <td><%= item.created_at %> </td>
+    <td><%= item.created_at.strftime("%Y-%m-%d %H:%M:%S") %> </td>
+    <td style="display:none">
+      <%= link_to "编辑", edit_item_path(item) %>
+      <%= link_to "删除", item, :confirm => "确认删除吗？", :method => :delete %> </td>
   </tr>
 <% end %>
   </tbody>
 </table>
-
+<%= paginate @items, :theme => 'twitter-bootstrap' %>

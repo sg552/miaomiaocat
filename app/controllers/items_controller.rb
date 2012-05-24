@@ -2,7 +2,7 @@ class ItemsController < ApplicationController
   # GET /items
   # GET /items.json
   def index
-    @items = Item.all
+    @items = Item.desc(:created_at).page params[:page]
 
     respond_to do |format|
       format.html # index.html.erb
