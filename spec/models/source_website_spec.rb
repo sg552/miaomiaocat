@@ -8,7 +8,7 @@ describe SourceWebsite do
     SourceWebsite.all.size.should > 0
   end
 
-  describe "basic fetch" do
+  describe "basic fetch, for a single page" do
     before do
       @source_website.update_attribute(:next_page_css, nil)
     end
@@ -47,9 +47,11 @@ describe SourceWebsite do
     end
   end
   describe "advanced fetch: across pagination" do
-    it "should get_next_page_url and get_previous_page_url for valid url " do
+    before do
       @source_website.update_attribute(:next_page_css, ".pager .next")
       @source_website.update_attribute(:previous_page_css, ".pager .prv")
+    end
+    it "should get_next_page_url and get_previous_page_url for valid url " do
 
       # let's start with the 2nd page
       page_2_url = @source_website.get_next_page_url(@source_website.url_where_fetch_starts)
@@ -60,7 +62,6 @@ describe SourceWebsite do
       @source_website.get_previous_page_url(page_3_url).should == page_2_url
     end
     it "should return nil for next_page_url/previous_page_url for invalid page" do
-      @source_website.update_attribute(:next_page_css, ".pager .next")
       url_without_next_page_css = "http://bj.58.com/zufang/?final=1&key=notexist&searchtype=3&sourcetype=5"
       @source_website.get_next_page_url(url_without_next_page_css).should be_nil
     end
@@ -68,8 +69,7 @@ describe SourceWebsite do
     it "consider the max_pages_per_fetch" do
       max_records_in_a_page = 37
       max_pages_per_fetch = 3
-      @source_website.update_attributes(:next_page_css => ".pager .next",
-        :max_pages_per_fetch => max_pages_per_fetch)
+      @source_website.update_attribute(:max_pages_per_fetch , max_pages_per_fetch)
       @source_website.fetch_items(:enable_max_pages_per_fetch => true)
       (2*max_records_in_a_page .. 3*max_records_in_a_page).include?(Item.all.size).should == true
     end
@@ -89,17 +89,16 @@ describe SourceWebsite do
     end
     it "should consider the last_fetched_item_url, assume the last_fetched_item_url is on 2nd page,
         the last but 8 ( -9 in Chinese ^_^ )" do
-      pending ".."
-      @source_website.update_attribute(:next_page_css, ".pager .next")
       next_page_url = @source_website.get_next_page_url(@source_website.url_where_fetch_starts)
-      last_fetched_item_url = Item.get_original_url(@source_website.get_items_list(next_page_url)[-9],
-        @source_website)
+      last_fetched_item = @source_website.get_items_list(next_page_url)[-9]
+      last_fetched_item_url = Item.get_original_url(last_fetched_item, @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
-      @source_website.fetch_items(:enable_last_fetched_item_url => true)
-
+      @source_website.update_attribute(:max_pages_per_fetch, 3)
+      @source_website.fetch_items(:enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true)
       max_records_in_a_page = 37
       Item.all.size.should < 2 * max_records_in_a_page
     end
+
     it "should consider the max_items_per_fetch, e.g. max_records_in_a_page is 37, and let's set the
       max_items_per_fetch = 50  ( in page2), then the fetch should stop after fetch 50th item " do
       max_items_per_fetch = 50
@@ -130,5 +129,4 @@ describe SourceWebsite do
       @source_website.send(:get_base_domain_name_of_current_page).should == base_domain_name
     end
   end
-
 end
