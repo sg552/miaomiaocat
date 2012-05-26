@@ -34,4 +34,4 @@ gem 'kaminari', "0.13.0"
 gem "bootstrap-kaminari-views", "~> 0.0.2"
 gem "haml", "3.1.4"
 gem 'cancan', '1.6.7'
-gem 'devise', '2.0.4'
+#gem 'devise', '2.0.4'
