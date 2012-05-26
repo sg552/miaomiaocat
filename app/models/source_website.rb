@@ -79,6 +79,16 @@ class SourceWebsite
   end
 
   private
+  def stop_the_entire_fetch_if_possible(options, source_website_object, original_url, items)
+    items_count_of_this_fetch = source_website_object.instance_variable_get(:@items_count_of_this_fetch)
+    if (options[:enable_max_items_per_fetch] == true &&
+        items_count_of_this_fetch == source_website_object.max_items_per_fetch.to_i ) ||
+        (options[:enable_last_fetched_item_url] == true && original_url == source_website_object.last_fetched_item_url)
+      save_last_fetched_info(original_url)
+      throw :stop_the_entire_fetch
+    end
+  end
+
   def should_stop_reading_for_the_next_page?(next_page_url, options)
     return next_page_url.blank? ||
       (options[:enable_max_pages_per_fetch] == true && @pages_count_for_this_fetch > max_pages_per_fetch)
@@ -86,19 +96,9 @@ class SourceWebsite
   def save_items_for_current_url_that_being_fetched(current_page_url, options)
     items = get_items_list(current_page_url)
     items.each do | raw_item |
-      original_url = Item.get_original_url(raw_item, self)
-      # TODO extract method?
-      #stop_the_entire_fetch_if_possible(options, @items_count_of_this_fetch,
-      if (options[:enable_max_items_per_fetch] == true &&
-          @items_count_of_this_fetch == max_items_per_fetch.to_i ) ||
-          (options[:enable_last_fetched_item_url] == true && original_url == last_fetched_item_url) ||
-          @items_count_of_this_fetch == items.size
-        save_last_fetched_info(original_url)
-        throw :stop_the_entire_fetch
-      end
+      stop_the_entire_fetch_if_possible(options, self, Item.get_original_url(raw_item, self), items)
       Item.create_by_html(raw_item, self)
       @items_count_of_this_fetch += 1
-      #save_last_fetched_info(original_url) if @items_count_of_this_fetch == items.size
     end
   end
   def get_base_domain_name_of_current_page
