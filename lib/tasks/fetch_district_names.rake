@@ -79,6 +79,7 @@ task :fetch_message do
 end
 
 task :dig_for_58 do
-  claw = Claw.new
-  Claw.new.dig_for_58
+  source_website = SourceWebsite.where(:name => /58/).first
+  source_website.fetch_items(:enable_max_pages_per_fetch => true,
+    :enable_max_items_per_fetch => true)
 end
