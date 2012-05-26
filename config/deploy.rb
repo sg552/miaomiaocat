@@ -30,8 +30,7 @@ namespace :deploy do
   end
   namespace :assets do
     task :precompile do
-      puts "===="
-      #run "bundle exec rake RAILS_ENV=production RAILS_GROUPS=assets assets:precompile RAILS_RELATIVE_URL_ROOT='/fangziya'"
+      run "cd #{release_path} && bundle exec rake RAILS_ENV=production RAILS_GROUPS=assets assets:precompile RAILS_RELATIVE_URL_ROOT='/fangziya'"
     end
   end
 end
@@ -43,7 +42,7 @@ desc "Copy database.yml to release_path"
 task :cp_database_yml do
   puts "executing my customized command: "
   puts "cp -r #{shared_path}/config/* #{release_path}/config/"
-  #run "cp -r #{shared_path}/config/* #{release_path}/config/"
+  run "cp -r #{shared_path}/config/* #{release_path}/config/"
 end
 
 before "deploy:assets:symlink", :cp_database_yml
