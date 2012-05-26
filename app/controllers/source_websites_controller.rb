@@ -44,7 +44,7 @@ class SourceWebsitesController < ApplicationController
 
     respond_to do |format|
       if @source_website.save
-        format.html { redirect_to @source_website, :notice => 'Source website was successfully created.' }
+        format.html { redirect_to source_websites_path, :notice => 'Source website was successfully created.' }
         format.json { render :json => @source_website, :status => :created, :location => @source_website }
       else
         format.html { render :action => "new" }
