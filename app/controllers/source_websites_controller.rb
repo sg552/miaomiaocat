@@ -60,7 +60,7 @@ class SourceWebsitesController < ApplicationController
 
     respond_to do |format|
       if @source_website.update_attributes(params[:source_website])
-        format.html { redirect_to @source_website, :notice => 'Source website was successfully updated.' }
+        format.html { redirect_to source_websites_path, :notice => 'Source website was successfully updated.' }
         format.json { head :no_content }
       else
         format.html { render :action => "edit" }
