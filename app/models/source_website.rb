@@ -85,6 +85,9 @@ class SourceWebsite
         items_count_of_this_fetch == source_website_object.max_items_per_fetch.to_i ) ||
         (options[:enable_last_fetched_item_url] == true && original_url == source_website_object.last_fetched_item_url)
       save_last_fetched_info(original_url)
+      logger.info "-- stop_the_entire_fetch_if_possible,
+        items_count_of_this_fetch: #{items_count_of_this_fetch},
+        last_fetched_item_url reached? #{original_url == source_website_object.last_fetched_item_url}"
       throw :stop_the_entire_fetch
     end
   end
