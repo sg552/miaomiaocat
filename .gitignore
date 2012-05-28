@@ -8,6 +8,7 @@ spec/routing
 spec/views
 public/assets
 config/database\.yml
+config/mongoid\.yml
 
 # Ignore bundler config
 /.bundle
