@@ -58,7 +58,11 @@ class SourceWebsite
       raise "the source_website #{self.name} is being fetched... please stop it if you want another fetch"
     end
     update_attribute(:status, STATUS_BEING_FETCHED)
-    original_fetch_items(options)
+    begin
+      original_fetch_items(options)
+    ensure
+      self.update_attribute(:status => nil)
+    end
     update_attribute(:status, nil)
   end
 
