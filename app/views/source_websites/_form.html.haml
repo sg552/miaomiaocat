@@ -1,0 +1,37 @@
+= form_for(@source_website) do |f|
+  .field
+    = f.label :name, :class => "label label-important"
+    = f.text_field :name
+  .field.label.label-important
+    = f.label :url_where_fetch_starts
+    = f.text_field :url_where_fetch_starts
+  .field
+    = f.label :last_fetched_item_url
+    = f.text_field :last_fetched_item_url
+  .field.label.label-important
+    = f.label :items_list_css
+    = f.text_field :items_list_css
+  .field.label.label-important
+    = f.label :next_page_css
+    = f.text_field :next_page_css
+  .field
+    = f.label :item_detail_page_url_css
+    = f.text_field :item_detail_page_url_css
+  .field
+    = f.label :max_pages_per_fetch
+    = f.text_field :max_pages_per_fetch
+  .field
+    = f.label :max_items_per_fetch
+    = f.text_field :max_items_per_fetch
+  .field
+    = f.label :status
+    = f.text_field :status
+  .field
+    = f.label :price_css
+    = f.text_field :price_css
+  .field
+    = f.label :item_published_at_css
+    = f.text_field :item_published_at_css
+
+  .actions
+    = f.submit

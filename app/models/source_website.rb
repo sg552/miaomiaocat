@@ -57,6 +57,7 @@ class SourceWebsite
   # * <tt>:enable_last_fetched_item_url</tt> - true/false, default is false.
   # * <tt>:enable_max_pages_per_fetch</tt> - true/false, default is false.
   def fetch_items(options = {})
+    logger.info "now fetching: #{self.name}"
     if self.status == STATUS_BEING_FETCHED
       warning = "the source_website #{self.name} is being fetched... please stop it if you want another fetch"
       logger.info warning
