@@ -81,5 +81,5 @@ end
 task :dig_for_58 do
   source_website = SourceWebsite.where(:name => /58/).first
   source_website.fetch_items(:enable_max_pages_per_fetch => true,
-    :enable_max_items_per_fetch => true)
+    :enable_max_items_per_fetch => true, :enable_last_fetched_item_url => true)
 end
