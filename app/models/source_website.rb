@@ -60,10 +60,11 @@ class SourceWebsite
     update_attribute(:status, STATUS_BEING_FETCHED)
     begin
       original_fetch_items(options)
+    rescue Exception => e
+      logger.error e.backtrace.join("\n")
     ensure
-      self.update_attribute(:status => nil)
+      update_attribute(:status, nil)
     end
-    update_attribute(:status, nil)
   end
 
   def get_items_list(target_url = url_where_fetch_starts)
