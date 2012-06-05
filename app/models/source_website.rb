@@ -6,6 +6,8 @@ class SourceWebsite
   field :url_where_fetch_starts, :type => String
   field :url_being_fetched, :type => String
   field :last_fetched_on, :type => DateTime
+  field :first_fetched_on, :type => DateTime
+  field :first_fetched_item_url, :type => String
   field :last_fetched_item_url, :type => String
   field :items_list_css, :type => String
   field :item_detail_page_url_css, :type => String
@@ -27,12 +29,12 @@ class SourceWebsite
     url_being_fetched = url_where_fetch_starts
     catch(:stop_the_entire_fetch) do
       loop do
+        logger.debug "saving page: #{@pages_count_for_this_fetch}"
         next_page_url = get_next_page_url(url_being_fetched)
         save_items_for_current_url_that_being_fetched(url_being_fetched, options)
         url_being_fetched = next_page_url
         @pages_count_for_this_fetch += 1
         if should_stop_reading_for_the_next_page?(next_page_url, options)
-          save_last_fetched_info(Item.last.original_url)
           break
         end
       end
@@ -55,15 +57,19 @@ class SourceWebsite
   # * <tt>:enable_max_pages_per_fetch</tt> - true/false, default is false.
   def fetch_items(options = {})
     if self.status == STATUS_BEING_FETCHED
-      raise "the source_website #{self.name} is being fetched... please stop it if you want another fetch"
+      warning = "the source_website #{self.name} is being fetched... please stop it if you want another fetch"
+      logger.info warning
+      raise warning
     end
     update_attribute(:status, STATUS_BEING_FETCHED)
     begin
       original_fetch_items(options)
     rescue Exception => e
+      logger.error e
       logger.error e.backtrace.join("\n")
     ensure
       update_attribute(:status, nil)
+      save_last_fetched_info(self.first_fetched_item_url)
     end
   end
 
@@ -89,8 +95,7 @@ class SourceWebsite
     if (options[:enable_max_items_per_fetch] == true &&
         items_count_of_this_fetch == source_website_object.max_items_per_fetch.to_i ) ||
         (options[:enable_last_fetched_item_url] == true && original_url == source_website_object.last_fetched_item_url)
-      save_last_fetched_info(original_url)
-      logger.info "-- stop_the_entire_fetch_if_possible,
+      logger.info "-- now stop_the_entire_fetch_if_possible,
         items_count_of_this_fetch: #{items_count_of_this_fetch},
         last_fetched_item_url reached? #{original_url == source_website_object.last_fetched_item_url}"
       throw :stop_the_entire_fetch
@@ -106,6 +111,7 @@ class SourceWebsite
     items.each do | raw_item |
       stop_the_entire_fetch_if_possible(options, self, Item.get_original_url(raw_item, self), items)
       Item.create_by_html(raw_item, self)
+      save_first_fetched_info(Item.last.try(:original_url)) if @items_count_of_this_fetch == 0
       @items_count_of_this_fetch += 1
     end
   end
@@ -119,7 +125,12 @@ class SourceWebsite
     require 'open-uri'
     return Nokogiri::HTML(open(target_url))
   end
+  def save_first_fetched_info(original_url)
+    logger.debug "saving first_fetched_item_url: #{original_url}"
+    update_attributes!(:first_fetched_item_url => original_url, :first_fetched_on => Time.now)
+  end
   def save_last_fetched_info(original_url)
+    logger.debug "saving last_fetched_item_url: #{original_url}"
     update_attributes!(:last_fetched_item_url => original_url, :last_fetched_on => Time.now)
   end
 end

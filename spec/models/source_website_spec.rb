@@ -17,11 +17,14 @@ describe SourceWebsite do
       Item.all.size.should > 30
     end
     it "basic: once fetched, its last_fetched_item_url and last_fetched_on should exist" do
+      Item.delete_all
+      Item.all.size.should == 0
       @source_website.update_attributes(:last_fetched_item_url => nil, :last_fetched_on => nil)
-      @source_website.fetch_items
-      @source_website.last_fetched_item_url.match(/http.*/).should_not be_nil
+      @source_website.fetch_items(:enable_max_pages_per_fetch => 1)
+      @source_website.last_fetched_item_url.should == Item.first.original_url
       @source_website.last_fetched_on.should_not be_nil
     end
+
     it "for a source_website which state is : STATUS_BEING_FETCHED, should not start a new fetch" do
       @source_website.update_attribute(:status, SourceWebsite::STATUS_BEING_FETCHED)
       lambda { @source_website.fetch_items}.should raise_error
@@ -29,20 +32,22 @@ describe SourceWebsite do
   end
 
   describe "advanced fetch: for a single page(no pagination)" do
+    before do
+      @source_website.update_attribute(:max_pages_per_fetch, 1)
+    end
     it "consider the max_items_per_fetch in 1 page" do
       max_items_per_fetch = 12
       @source_website.update_attribute(:max_items_per_fetch, max_items_per_fetch)
-      @source_website.fetch_items :enable_max_items_per_fetch => true
+      @source_website.fetch_items :enable_max_items_per_fetch => true, :enable_max_pages_per_fetch => true
       Item.all.size.should <= max_items_per_fetch
     end
 
-
     it "consider the last_fetched_item_url" do
+      Rails.logger.info "here -A ==="
       total_items_count = @source_website.get_items_list.size
-
       last_fetched_item_url = Item.get_original_url(@source_website.get_items_list[-3], @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
-      @source_website.fetch_items :enable_last_fetched_item_url => true
+      @source_website.fetch_items :enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true
       Item.all.size.should == total_items_count - 3
     end
   end
