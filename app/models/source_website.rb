@@ -35,6 +35,7 @@ class SourceWebsite
         url_being_fetched = next_page_url
         @pages_count_for_this_fetch += 1
         if should_stop_reading_for_the_next_page?(next_page_url, options)
+          logger.info "stops the loop because of: should_stop_reading_for_the_next_page?: true"
           break
         end
       end
@@ -103,8 +104,15 @@ class SourceWebsite
   end
 
   def should_stop_reading_for_the_next_page?(next_page_url, options)
-    return next_page_url.blank? ||
+    result = next_page_url.blank? ||
       (options[:enable_max_pages_per_fetch] == true && @pages_count_for_this_fetch > max_pages_per_fetch)
+    if result
+      logger.debug "enable_max_items_per_fetch: #{options[:enable_max_pages_per_fetch]}"
+      logger.debug "next_page_url.blank? :#{next_page_url}"
+      logger.debug "@pages_count_for_this_fetch: #{@pages_count_for_this_fetch}"
+      logger.debug "max_pages_per_fetch: #{max_pages_per_fetch}"
+    end
+    return result
   end
   def save_items_for_current_url_that_being_fetched(current_page_url, options)
     items = get_items_list(current_page_url)
