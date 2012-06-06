@@ -130,10 +130,9 @@ class SourceWebsite
     "#{temp.scheme}://#{temp.host}"
   end
   def get_doc(target_url = url_where_fetch_starts)
-    # TODO use httparty instead
-    require 'open-uri'
     logger.info "in source_website.rb, opening url: #{target_url}"
-    return Nokogiri::HTML(open(target_url))
+    options = {:headers => {"User-Agent" => USER_AGENT}}
+    return Nokogiri::HTML(MockBrowser.get(target_url, options).body)
   end
   def save_first_fetched_info(original_url)
     logger.debug "saving first_fetched_item_url: #{original_url}"

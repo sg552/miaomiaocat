@@ -20,6 +20,7 @@ class Item
     logger.debug "saving item: original_url: #{original_url}"
   end
   def self.get_original_url(html_content, source_website)
-    html_content.css(source_website.item_detail_page_url_css).attribute("href").to_s
+    url = html_content.css(source_website.item_detail_page_url_css).attribute("href").to_s
+    return url.start_with?("http") ? url : source_website.send(:get_base_domain_name_of_current_page) + url
   end
 end

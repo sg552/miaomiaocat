@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'lib/claw'
 
 describe Claw do
   it "should fetch from 58.com" do
