@@ -109,7 +109,7 @@ class SourceWebsite
       (options[:enable_max_pages_per_fetch] == true && @pages_count_for_this_fetch > max_pages_per_fetch)
     if result
       logger.debug "enable_max_items_per_fetch: #{options[:enable_max_pages_per_fetch]}"
-      logger.debug "next_page_url.blank? :#{next_page_url}"
+      logger.debug "next_page_url :#{next_page_url}, (should not be blank)"
       logger.debug "@pages_count_for_this_fetch: #{@pages_count_for_this_fetch}"
       logger.debug "max_pages_per_fetch: #{max_pages_per_fetch}"
     end
@@ -132,7 +132,10 @@ class SourceWebsite
   def get_doc(target_url = url_where_fetch_starts)
     logger.info "in source_website.rb, opening url: #{target_url}"
     options = {:headers => {"User-Agent" => USER_AGENT}}
-    return Nokogiri::HTML(MockBrowser.get(target_url, options).body)
+    html = MockBrowser.get(target_url, options).body
+    next_page_url = Nokogiri::HTML(html).css("#PageControl1_hlk_next")
+    logger.debug("next_page_url: #{next_page_url}")
+    return Nokogiri::HTML(html)
   end
   def save_first_fetched_info(original_url)
     logger.debug "saving first_fetched_item_url: #{original_url}"
