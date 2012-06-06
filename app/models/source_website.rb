@@ -132,6 +132,7 @@ class SourceWebsite
   def get_doc(target_url = url_where_fetch_starts)
     # TODO use httparty instead
     require 'open-uri'
+    logger.info "in source_website.rb, opening url: #{target_url}"
     return Nokogiri::HTML(open(target_url))
   end
   def save_first_fetched_info(original_url)

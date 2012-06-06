@@ -6,6 +6,7 @@
     <th>开始URL</th>
     <th>最近一次抓取的时间</th>
     <th>最近一次抓取的信息</th>
+    <th>状态</th>
     <th>信息列表页css</th>
     <th>信息详细页css</th>
     <th>信息发布时间css</th>
@@ -18,11 +19,15 @@
     <td><%= link_to source_website.url_where_fetch_starts, source_website.url_where_fetch_starts, :target => "_blank" %></td>
     <td><%= source_website.last_fetched_on %></td>
     <td><%= source_website.last_fetched_item_url %></td>
+    <td><%= source_website.status%></td>
     <td><%= source_website.items_list_css %></td>
     <td><%= source_website.item_detail_page_url_css %></td>
     <td><%= source_website.item_published_at_css %></td>
-    <td><%= link_to 'Edit', edit_source_website_path(source_website) %>
-    <%= link_to 'Destroy', source_website, :confirm => 'Are you sure?', :method => :delete %></td>
+    <td>
+      <%= link_to 'Edit', edit_source_website_path(source_website) %>
+      <%= link_to 'Destroy', source_website, :confirm => 'Are you sure?', :method => :delete %>
+      <%= link_to 'Fetch', fetch_source_website_path(source_website), :method => :post, :confirm => 'Are you sure?' %>
+    </td>
   </tr>
 <% end %>
 </table>
