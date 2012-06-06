@@ -1,4 +1,5 @@
 class SourceWebsitesController < ApplicationController
+  before_filter :get_by_id, :only => [:show, :edit, :update, :destroy, :fetch]
   # GET /source_websites
   # GET /source_websites.json
   def index
@@ -13,7 +14,6 @@ class SourceWebsitesController < ApplicationController
   # GET /source_websites/1
   # GET /source_websites/1.json
   def show
-    @source_website = SourceWebsite.find(params[:id])
 
     respond_to do |format|
       format.html # show.html.erb
@@ -34,7 +34,6 @@ class SourceWebsitesController < ApplicationController
 
   # GET /source_websites/1/edit
   def edit
-    @source_website = SourceWebsite.find(params[:id])
   end
 
   # POST /source_websites
@@ -56,8 +55,6 @@ class SourceWebsitesController < ApplicationController
   # PUT /source_websites/1
   # PUT /source_websites/1.json
   def update
-    @source_website = SourceWebsite.find(params[:id])
-
     respond_to do |format|
       if @source_website.update_attributes(params[:source_website])
         format.html { redirect_to source_websites_path, :notice => 'Source website was successfully updated.' }
@@ -72,12 +69,23 @@ class SourceWebsitesController < ApplicationController
   # DELETE /source_websites/1
   # DELETE /source_websites/1.json
   def destroy
-    @source_website = SourceWebsite.find(params[:id])
     @source_website.destroy
 
     respond_to do |format|
       format.html { redirect_to source_websites_url }
       format.json { head :no_content }
     end
+  end
+
+  # POST
+  def fetch
+    @source_website.fetch_items(:enable_max_items_per_fetch => true,
+      :enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true)
+    render :text => "fetching..."
+  end
+  private
+
+  def get_by_id
+    @source_website = SourceWebsite.find(params[:id])
   end
 end
