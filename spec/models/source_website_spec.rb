@@ -10,17 +10,17 @@ describe SourceWebsite do
 
   describe "basic fetch, for a single page" do
     before do
-      @source_website.update_attribute(:next_page_css, nil)
+      @source_website.update_attributes(:last_fetched_item_url => nil, :next_page_css => nil)
+      Item.delete_all
+      Item.all.size.should == 0
     end
     it "basic : should fetch from remote website" do
       @source_website.fetch_items
       Item.all.size.should > 30
     end
     it "basic: once fetched, its last_fetched_item_url and last_fetched_on should exist" do
-      Item.delete_all
-      Item.all.size.should == 0
-      @source_website.update_attributes(:last_fetched_item_url => nil, :last_fetched_on => nil)
-      @source_website.fetch_items(:enable_max_pages_per_fetch => 1)
+      Rails.logger.info " test last_fetched_item_url:"
+      @source_website.fetch_items
       @source_website.last_fetched_item_url.should == Item.first.original_url
       @source_website.last_fetched_on.should_not be_nil
     end
@@ -28,6 +28,10 @@ describe SourceWebsite do
     it "for a source_website which state is : STATUS_BEING_FETCHED, should not start a new fetch" do
       @source_website.update_attribute(:status, SourceWebsite::STATUS_BEING_FETCHED)
       lambda { @source_website.fetch_items}.should raise_error
+    end
+
+    it "for a fetch, should keep the orders of the items. " do
+      pending ".."
     end
   end
 

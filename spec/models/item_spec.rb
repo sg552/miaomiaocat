@@ -40,8 +40,7 @@ describe Item do
 
 
   it "should create_by_html" do
-    Item.create_by_html(Nokogiri::HTML(@content), @source_website)
-    item = Item.last
+    item = Item.create_by_html(Nokogiri::HTML(@content), @source_website)
     item.original_url.should == @original_url
     item.published_at.strftime("%Y-%m-%d").should == Date.today.strftime("%Y-%m-%d")
     item.price.should == @price

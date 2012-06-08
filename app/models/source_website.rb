@@ -21,9 +21,11 @@ class SourceWebsite
   field :previous_page_css, :type => String
   field :status, :type => String
   STATUS_BEING_FETCHED = "being fetched"
+  alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
   has_many :items
   def fetch_items(options ={})
+    @items_to_create = []
     @items_count_of_this_fetch = 0
     @pages_count_for_this_fetch = 1
     url_being_fetched = url_where_fetch_starts
@@ -31,7 +33,7 @@ class SourceWebsite
       loop do
         logger.debug "saving page: #{@pages_count_for_this_fetch}"
         next_page_url = get_next_page_url(url_being_fetched)
-        save_items_for_current_url_that_being_fetched(url_being_fetched, options)
+        save_items_for_current_url_that_being_fetched(url_being_fetched, options, @items_to_create)
         url_being_fetched = next_page_url
         @pages_count_for_this_fetch += 1
         if should_stop_reading_for_the_next_page?(next_page_url, options)
@@ -40,6 +42,8 @@ class SourceWebsite
         end
       end
     end
+    @items_to_create.reverse.each { |item| item.save! }
+    logger.info "== a fetch is done, items_to_create: #{@items_to_create.size} saved"
   end
 
   # ... a test for "around alias"
@@ -67,6 +71,7 @@ class SourceWebsite
     begin
       original_fetch_items(options)
     rescue Exception => e
+      puts "exception: #{e}, more details, please check the log"
       logger.error e
       logger.error e.backtrace.join("\n")
     ensure
@@ -115,12 +120,12 @@ class SourceWebsite
     end
     return result
   end
-  def save_items_for_current_url_that_being_fetched(current_page_url, options)
+  def save_items_for_current_url_that_being_fetched(current_page_url, options, items_to_create)
     items = get_items_list(current_page_url)
     items.each do | raw_item |
       stop_the_entire_fetch_if_possible(options, self, Item.get_original_url(raw_item, self), items)
-      Item.create_by_html(raw_item, self)
-      save_first_fetched_info(Item.last.try(:original_url)) if @items_count_of_this_fetch == 0
+      items_to_create << Item.create_by_html(raw_item, self)
+      save_first_fetched_info(items_to_create.last.try(:original_url)) if @items_count_of_this_fetch == 0
       @items_count_of_this_fetch += 1
     end
   end
