@@ -21,6 +21,7 @@ end
 group :development, :test do
   gem 'factory_girl_rails', '1.3.0'
   gem 'rspec-rails', '2.8.1'
+  gem 'rspec-core'
 end
 
 gem 'jquery-rails'

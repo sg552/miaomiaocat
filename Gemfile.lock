@@ -175,6 +175,7 @@ DEPENDENCIES
   mongoid (~> 2.4)
   nokogiri (= 1.5.0)
   rails (= 3.2.2)
+  rspec-core
   rspec-rails (= 2.8.1)
   sass-rails (~> 3.2.3)
   uglifier (>= 1.0.3)
