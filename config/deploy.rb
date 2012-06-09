@@ -20,7 +20,7 @@ namespace :deploy do
   set :use_sudo, true
   task :restart do
     #run "/opt/nginx/sbin/nginx -s reload"
-    run "touch tmp/restart.txt"
+    run "cd #{release_path} && touch tmp/restart.txt"
   end
   task :start do
     run "/opt/nginx/sbin/nginx"

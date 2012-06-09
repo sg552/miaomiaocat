@@ -1,1 +1,1 @@
-bundle exec rake dig_for_58 RAILS_ENV=production
+bundle exec rake fetch_items RAILS_ENV=production
