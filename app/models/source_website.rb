@@ -136,7 +136,7 @@ class SourceWebsite
   end
   def get_doc(target_url = url_where_fetch_starts)
     logger.info "in source_website.rb, opening url: #{target_url}"
-    options = {:headers => {"User-Agent" => USER_AGENT}}
+    options = {:headers => {"User-Agent" => Settings.crawler.user_agent}}
     html = MockBrowser.get(target_url, options).body
     next_page_url = Nokogiri::HTML(html).css("#PageControl1_hlk_next")
     logger.debug("next_page_url: #{next_page_url}")
