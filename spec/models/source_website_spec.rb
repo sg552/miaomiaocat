@@ -31,7 +31,6 @@ describe SourceWebsite do
     end
 
     it "for a fetch, should keep the orders of the items. " do
-      pending ".."
     end
   end
 
@@ -136,6 +135,25 @@ describe SourceWebsite do
       base_domain_name = "http://bj.58.com"
       @source_website.update_attribute(:url_where_fetch_starts, base_domain_name + "/zufang?ooxxooxx")
       @source_website.send(:get_base_domain_name_of_current_page).should == base_domain_name
+    end
+  end
+
+  describe "for the websites with invalid items" do
+    before do
+      # TODO why can't I just use:  create(:website_with_invalid_items) ?
+      @source_website.update_attributes(:name => "Gan ji",
+        :url_where_fetch_starts => "http://bj.ganji.com/fang1/",
+        :items_list_css => "dl.list_noimg",
+        :item_detail_page_url_css => "a.list_title")
+    end
+    it "should save them if invalid_item_detail_url_pattern was NOT set" do
+      @source_website.fetch_items
+      Item.all.size.should == @source_website.get_items_list.size
+    end
+    it "should not save them if invalid_item_detail_url_pattern was set" do
+      @source_website.update_attributes(:invalid_item_detail_url_pattern => "/common/cpcredirect.php?")
+      @source_website.fetch_items
+      Item.all.size.should < @source_website.get_items_list.size
     end
   end
 end

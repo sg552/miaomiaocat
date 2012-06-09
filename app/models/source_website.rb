@@ -20,6 +20,7 @@ class SourceWebsite
   field :next_page_css, :type => String
   field :previous_page_css, :type => String
   field :status, :type => String
+  field :invalid_item_detail_url_pattern, :type => String
   STATUS_BEING_FETCHED = "being fetched"
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
@@ -123,6 +124,12 @@ class SourceWebsite
   def save_items_for_current_url_that_being_fetched(current_page_url, options, items_to_create)
     items = get_items_list(current_page_url)
     items.each do | raw_item |
+      item_original_url = Item.get_original_url(raw_item, self)
+      if !self.invalid_item_detail_url_pattern.blank? &&
+        item_original_url =~ Regexp.new(self.invalid_item_detail_url_pattern)
+        logger.debug "found invalid item, skipped: #{item_original_url}"
+        next
+      end
       stop_the_entire_fetch_if_possible(options, self, Item.get_original_url(raw_item, self), items)
       items_to_create << Item.create_by_html(raw_item, self)
       save_first_fetched_info(items_to_create.last.try(:original_url)) if @items_count_of_this_fetch == 0
