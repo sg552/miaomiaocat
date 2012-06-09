@@ -37,3 +37,4 @@ gem "haml", "3.1.4"
 gem 'cancan', '1.6.7'
 #gem 'devise', '2.0.4'
 gem 'httparty'
+gem 'rails_config'
