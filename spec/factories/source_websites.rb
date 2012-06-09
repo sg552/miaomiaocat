@@ -1,5 +1,3 @@
-# Read about factories at http://github.com/thoughtbot/factory_girl
-
 FactoryGirl.define do
   factory :source_website do
     name "58 the same city- wangjing"
@@ -13,5 +11,12 @@ FactoryGirl.define do
     max_items_per_fetch 1000
     next_page_css ".pager .next"
     previous_page_css ".pager .prv"
+  end
+  factory :website_with_invalid_items do
+    name "Ganji"
+    url_where_fetch_starts "http://bj.ganji.com/fang1/"
+    items_list_css "dl.list_noimg"
+    item_detail_page_url_css "a.list_title"
+    price_css ".price"
   end
 end

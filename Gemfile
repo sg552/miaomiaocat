@@ -21,6 +21,7 @@ end
 group :development, :test do
   gem 'factory_girl_rails', '1.3.0'
   gem 'rspec-rails', '2.8.1'
+  gem 'rspec-core'
 end
 
 gem 'jquery-rails'
@@ -36,3 +37,4 @@ gem "haml", "3.1.4"
 gem 'cancan', '1.6.7'
 #gem 'devise', '2.0.4'
 gem 'httparty'
+gem 'rails_config'

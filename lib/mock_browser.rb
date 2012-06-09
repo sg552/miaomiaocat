@@ -1,4 +1,4 @@
 class MockBrowser
   include HTTParty
-  http_proxy "wwwgate0-ch.mot.com", 1080
+  http_proxy Settings.proxy.host, Settings.proxy.port if Settings.proxy.enabled
 end

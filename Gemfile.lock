@@ -113,6 +113,8 @@ GEM
       activesupport (= 3.2.2)
       bundler (~> 1.0)
       railties (= 3.2.2)
+    rails_config (0.3.0)
+      activesupport (>= 3.0)
     railties (3.2.2)
       actionpack (= 3.2.2)
       activesupport (= 3.2.2)
@@ -175,6 +177,8 @@ DEPENDENCIES
   mongoid (~> 2.4)
   nokogiri (= 1.5.0)
   rails (= 3.2.2)
+  rails_config
+  rspec-core
   rspec-rails (= 2.8.1)
   sass-rails (~> 3.2.3)
   uglifier (>= 1.0.3)
