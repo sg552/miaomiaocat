@@ -30,6 +30,9 @@
     = f.label :invalid_item_detail_url_pattern, "无效url pattern(置顶啥的)"
     = f.text_field :invalid_item_detail_url_pattern
   .field
+    = f.label :invalid_item_css_patterns, "无效css patterns(置顶啥的，每行一组)"
+    = f.text_area :invalid_item_css_patterns, :size=> "60 x 4"
+  .field
     = f.label :last_fetched_item_url
     = f.text_field :last_fetched_item_url
   .field

@@ -21,6 +21,7 @@ class SourceWebsite
   field :previous_page_css, :type => String
   field :status, :type => String
   field :invalid_item_detail_url_pattern, :type => String
+  field :invalid_item_css_patterns, :type => String
   STATUS_BEING_FETCHED = "being fetched"
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
@@ -81,8 +82,14 @@ class SourceWebsite
     end
   end
 
+  # DEPRECATED, use #get_entries instead
   def get_items_list(target_url = url_where_fetch_starts)
     return get_doc(target_url).css(items_list_css)
+  end
+
+  def get_entries(options= {  })
+    opt = { :target_url => url_where_fetch_starts, :css => items_list_css}.merge(options)
+    return get_doc(opt[:target_url]).css(opt[:css])
   end
 
   # dynamically define methods:
@@ -129,6 +136,17 @@ class SourceWebsite
         item_original_url =~ Regexp.new(self.invalid_item_detail_url_pattern)
         logger.debug "found invalid item, skipped: #{item_original_url}"
         next
+      end
+      unless self.invalid_item_css_patterns.blank?
+        temp_should_next_item = false
+        self.invalid_item_css_patterns.split("\n").each do |invalid_css|
+          unless raw_item.css(invalid_css).blank?
+            logger.debug "found invalid css, skipped: #{invalid_css}, url: #{ item_original_url}"
+            temp_should_next_item = true
+            break
+          end
+        end
+        next if temp_should_next_item
       end
       stop_the_entire_fetch_if_possible(options, self, Item.get_original_url(raw_item, self), items)
       items_to_create << Item.create_by_html(raw_item, self)

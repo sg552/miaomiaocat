@@ -155,5 +155,35 @@ describe SourceWebsite do
       @source_website.fetch_items
       Item.all.size.should < @source_website.get_items_list.size
     end
+    it "should not save them if invalid_item_css_patterns given, as single one" do
+      css = ".ico.ding_"
+      @source_website = create(:source_website)
+      @source_website.update_attributes(:url_where_fetch_starts => "http://bj.58.com/hezu/",
+        :invalid_item_css_patterns => css,
+        :next_page_css => nil)
+      css1_elements_count = @source_website.get_entries(:css => css)
+      css1_elements_count.size.should > 0
+      @source_website.fetch_items
+      Item.all.size.should == @source_website.get_items_list.size - css1_elements_count.size
+    end
+    it "should not save them if invalid_item_css_patterns given, as single one" do
+      css1 = ".ico.ding_"
+      css2 = ".ico.ding"
+      @source_website = create(:source_website)
+      @source_website.update_attributes(:url_where_fetch_starts => "http://bj.58.com/hezu/",
+        :invalid_item_css_patterns => [css1, css2].join("\n"),
+        :next_page_css => nil)
+      css1_elements_count = @source_website.get_entries(:css => css1).size
+      css1_elements_count.should > 0
+      css2_elements_count = @source_website.get_entries(:css => css2).size
+      css2_elements_count.should > 0
+      @source_website.fetch_items
+      Item.all.size.should == @source_website.get_items_list.size -
+        css1_elements_count - css2_elements_count
+    end
+  end
+  it "should get_entries " do
+    @source_website.get_entries.size.should > 0
+    @source_website.get_entries(:css => ".ico.ding_").size.should > 0
   end
 end
