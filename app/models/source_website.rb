@@ -23,6 +23,7 @@ class SourceWebsite
   field :invalid_item_detail_url_pattern, :type => String
   field :invalid_item_css_patterns, :type => String
   STATUS_BEING_FETCHED = "being fetched"
+  INVALID_CSS_SEPARATOR = ';'
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
   has_many :items
@@ -139,7 +140,7 @@ class SourceWebsite
       end
       unless self.invalid_item_css_patterns.blank?
         temp_should_next_item = false
-        self.invalid_item_css_patterns.split("\n").each do |invalid_css|
+        self.invalid_item_css_patterns.split(INVALID_CSS_SEPARATOR).each do |invalid_css|
           unless raw_item.css(invalid_css).blank?
             logger.debug "found invalid css, skipped: #{invalid_css}, url: #{ item_original_url}"
             temp_should_next_item = true
