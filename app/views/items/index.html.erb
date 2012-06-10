@@ -19,7 +19,7 @@
   <tbody>
 <% @items.each do |item| %>
   <tr>
-    <td><%= link_to item.source_website.try(:name), item.source_website.try(:url), :target => "_blank" %></td>
+    <td><%= link_to item.source_website.try(:name), item.source_website.try(:url_where_fetch_starts), :target => "_blank" %></td>
     <td><%= link_to item.content, item.original_url, :target => "_blank" %> </td>
     <td><%= item.created_at.strftime("%Y-%m-%d %H:%M:%S") %> </td>
     <td style="display:none">
