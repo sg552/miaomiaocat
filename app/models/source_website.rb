@@ -144,9 +144,11 @@ class SourceWebsite
           unless raw_item.css(invalid_css).blank?
             logger.debug "found invalid css, skipped: #{invalid_css}, url: #{ item_original_url}"
             temp_should_next_item = true
+            # break the current loop (invalid item css loop)
             break
           end
         end
+        # next the loop: scanning items.
         next if temp_should_next_item
       end
       stop_the_entire_fetch_if_possible(options, self, Item.get_original_url(raw_item, self), items)

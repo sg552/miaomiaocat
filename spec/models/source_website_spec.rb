@@ -171,19 +171,48 @@ describe SourceWebsite do
       css2 = ".ico.ding"
       @source_website = create(:source_website)
       @source_website.update_attributes(:url_where_fetch_starts => "http://bj.58.com/hezu/",
-        :invalid_item_css_patterns => [css1, css2].join("\n"),
+        :invalid_item_css_patterns => [css1, css2].join(SourceWebsite::INVALID_CSS_SEPARATOR),
         :next_page_css => nil)
       css1_elements_count = @source_website.get_entries(:css => css1).size
       css1_elements_count.should > 0
       css2_elements_count = @source_website.get_entries(:css => css2).size
       css2_elements_count.should > 0
       @source_website.fetch_items
-      Item.all.size.should == @source_website.get_items_list.size -
-        css1_elements_count - css2_elements_count
+      Item.all.size.should == @source_website.get_items_list.size - css1_elements_count - css2_elements_count
     end
   end
   it "should get_entries " do
     @source_website.get_entries.size.should > 0
     @source_website.get_entries(:css => ".ico.ding_").size.should > 0
   end
+
+  it "the saved items should keep the order from the page where they come ,e.g.:
+    original_page:
+      1. item1  (latest)
+      2. item2
+      3. item3  (oldest record)
+    saved items in local db should be ( default order ):
+      1. item3  (saved first)
+      2. item2  (saved second)
+      3. item1  (saved third)
+      " do
+    @source_website.update_attributes(:next_page_css => nil)
+    original_item_urls= @source_website.get_entries.collect { | raw_item|
+      Item.get_original_url(raw_item, @source_website)
+    }
+    @source_website.fetch_items(:enable_max_items_per_fetch => false)
+    saved_item_urls = Item.all.collect { | saved_item |
+      saved_item.original_url }
+    original_item_urls.should == saved_item_urls.reverse
+  end
+
+  it "if the last_fetched_item_url was not valid, should choose last but 1 item as last_fetched_item_url, e.g.
+    current db:
+      1. item1_url   ( last_fetched_item_url)
+      2. item2_url
+      3. item3_url
+    if item1_url was missing ( removed by the author) , we should choose item2_url as last_fetched_item_url" do
+    pending ".."
+  end
+
 end
