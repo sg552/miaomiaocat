@@ -2,5 +2,29 @@
 
 Miaomiaocat is a web application to help people crawling the information from other websites.
 
-THIS website is pending / hibernating. and will be re-started after 'fangziya' website is online.
+== Origin
+
+Once a day(in April 1x, 2012), I would like to rare a new department, since my current department contract
+is expiring. If I can't move out in time, my guarantee deposite will can't be get back. also, I have many
+requirments:
+
+1. it should be on the top floor. ( so that no kid jumping/ playing in the night when I am sleeping)
+2. it should NOT be expensive
+3. it should be near from subway.
+
+At that time, there are many websites in China for the house-renting domain. I don't have time to check
+them all one by one and keep an eye on the latest posts. so I wrote a very simple crawler, just crawling
+the most famous one of the websites.
+
+Till now, the tool has been improved and being made a full-fledge website, by collecting all the house-
+renting message into 1 website. another word, this app is a data aggregation tool.
+
+== Notice
+
+* It's for Chinese only .
+* Not stable yet. ( has some bugs )
+* Only working with 2 main websites: 58.com,  ganji.com
+
+== TODO
+* support full text search
 
