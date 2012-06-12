@@ -211,13 +211,4 @@ describe SourceWebsite do
     saved_item_urls = Item.all.collect { | saved_item | saved_item.original_url }
     original_item_urls.should == saved_item_urls.reverse
   end
-
-  it "if the last_fetched_item_url was not valid, should choose last but 1 item as last_fetched_item_url, e.g.
-    current db:
-      1. item1_url   ( last_fetched_item_url)
-      2. item2_url
-      3. item3_url
-    if item1_url was missing ( removed by the author) , we should choose item2_url as last_fetched_item_url" do
-    pending ".."
-  end
 end

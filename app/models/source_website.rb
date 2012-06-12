@@ -116,10 +116,10 @@ class SourceWebsite
     if (options[:enable_max_items_per_fetch] == true &&
         items_count_of_this_fetch == source_website_object.max_items_per_fetch.to_i ) ||
         (options[:enable_last_fetched_item_url] == true &&
-          source_website_object.last_fetched_item_url.include?(original_url))
+          source_website_object.last_fetched_item_url.try(:include?, original_url))
       logger.info "-- now stop_the_entire_fetch_if_possible,
         items_count_of_this_fetch: #{items_count_of_this_fetch},
-        last_fetched_item_url reached? #{original_url == source_website_object.last_fetched_item_url}"
+        last_fetched_item_url reached? #{source_website_object.last_fetched_item_url.try(:include?,original_url)}"
       throw :stop_the_entire_fetch
     end
   end
