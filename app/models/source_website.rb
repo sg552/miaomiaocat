@@ -3,22 +3,27 @@ class SourceWebsite
   include Mongoid::Timestamps
   field :name, :type => String
   field :url, :type => String
+
   field :url_where_fetch_starts, :type => String
   field :url_being_fetched, :type => String
   field :last_fetched_on, :type => DateTime
   field :first_fetched_on, :type => DateTime
   field :first_fetched_item_url, :type => String
   field :last_fetched_item_url, :type => String
+
   field :items_list_css, :type => String
   field :item_detail_page_url_css, :type => String
   field :sample_items_list_content, :type => String
   field :sample_item_content, :type => String
+
   field :max_pages_per_fetch, :type => Integer
   field :max_items_per_fetch, :type => Integer
   field :item_published_at_css, :type => String
+
   field :price_css, :type => String
-  field :next_page_css, :type => String
   field :previous_page_css, :type => String
+
+  field :next_page_css, :type => String
   field :status, :type => String
   field :invalid_item_detail_url_pattern, :type => String
   field :invalid_item_css_patterns, :type => String
@@ -27,6 +32,7 @@ class SourceWebsite
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
   has_many :items
+
   def fetch_items(options ={})
     @items_to_create = []
     @items_count_of_this_fetch = 0
@@ -165,7 +171,7 @@ class SourceWebsite
   def get_doc(target_url = url_where_fetch_starts)
     logger.info "in source_website.rb, opening url: #{target_url}"
     options = {:headers => {"User-Agent" => Settings.crawler.user_agent}}
-    html = MockBrowser.get(target_url, options).body
+    html = MockBrowser.get(target_url, options)
     next_page_url = Nokogiri::HTML(html).css("#PageControl1_hlk_next")
     logger.debug("next_page_url: #{next_page_url}")
     return Nokogiri::HTML(html)

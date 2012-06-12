@@ -159,6 +159,7 @@ describe SourceWebsite do
       css = ".ico.ding_"
       @source_website = create(:source_website)
       @source_website.update_attributes(:url_where_fetch_starts => "http://bj.58.com/hezu/",
+        :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
         :invalid_item_css_patterns => css,
         :next_page_css => nil)
       css1_elements_count = @source_website.get_entries(:css => css)
@@ -170,7 +171,9 @@ describe SourceWebsite do
       css1 = ".ico.ding_"
       css2 = ".ico.ding"
       @source_website = create(:source_website)
-      @source_website.update_attributes(:url_where_fetch_starts => "http://bj.58.com/hezu/",
+      @source_website.update_attributes(
+        #:url_where_fetch_starts => "http://bj.58.com/hezu/",
+        :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
         :invalid_item_css_patterns => [css1, css2].join(SourceWebsite::INVALID_CSS_SEPARATOR),
         :next_page_css => nil)
       css1_elements_count = @source_website.get_entries(:css => css1).size
@@ -214,12 +217,4 @@ describe SourceWebsite do
     if item1_url was missing ( removed by the author) , we should choose item2_url as last_fetched_item_url" do
     pending ".."
   end
-
-  it "should read local file as html content, e.g.
-    file = '/spec/fixtures/page1.html" do
-    file = '/spec/fixtures/page1.html'
-    pending
-    @source_website.get_doc(file)
-  end
-
 end
