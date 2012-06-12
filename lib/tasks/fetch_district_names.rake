@@ -1,5 +1,4 @@
 require 'open-uri'
-require 'lib/claw'
 
 
 desc "fetch district names"
