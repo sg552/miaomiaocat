@@ -215,4 +215,11 @@ describe SourceWebsite do
     pending ".."
   end
 
+  it "should read local file as html content, e.g.
+    file = '/spec/fixtures/page1.html" do
+    file = '/spec/fixtures/page1.html'
+    pending
+    @source_website.get_doc(file)
+  end
+
 end
