@@ -69,9 +69,8 @@ describe SourceWebsite do
       # then should get 2nd page as the 'previous page'
       @source_website.get_previous_page_url(page_3_url).should == page_2_url
     end
-    it "should return nil for next_page_url/previous_page_url for invalid page" do
-      url_without_next_page_css = "http://bj.58.com/zufang/?final=1&key=notexist&searchtype=3&sourcetype=5"
-      @source_website.get_next_page_url(url_without_next_page_css).should be_nil
+    it "should return nil if no next_page_url/previous_page_url found " do
+      @source_website.get_next_page_url('file://spec/fixtures/page_without_next_page_link.html').should == nil
     end
 
     it "consider the max_pages_per_fetch" do
@@ -141,10 +140,9 @@ describe SourceWebsite do
   describe "for the websites with invalid items" do
     before do
       # TODO why can't I just use:  create(:website_with_invalid_items) ?
-      @source_website.update_attributes(:name => "Gan ji",
-        :url_where_fetch_starts => "http://bj.ganji.com/fang1/",
-        :items_list_css => "dl.list_noimg",
-        :item_detail_page_url_css => "a.list_title")
+      @source_website.update_attributes(
+        :url_where_fetch_starts => "file://spec/fixtures/page1_with_invalid_link.html",
+        :next_page_css => nil)
     end
     it "should save them if invalid_item_detail_url_pattern was NOT set" do
       @source_website.fetch_items
@@ -158,7 +156,7 @@ describe SourceWebsite do
     it "should not save them if invalid_item_css_patterns given, as single one" do
       css = ".ico.ding_"
       @source_website = create(:source_website)
-      @source_website.update_attributes(:url_where_fetch_starts => "http://bj.58.com/hezu/",
+      @source_website.update_attributes(
         :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
         :invalid_item_css_patterns => css,
         :next_page_css => nil)
@@ -172,7 +170,6 @@ describe SourceWebsite do
       css2 = ".ico.ding"
       @source_website = create(:source_website)
       @source_website.update_attributes(
-        #:url_where_fetch_starts => "http://bj.58.com/hezu/",
         :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
         :invalid_item_css_patterns => [css1, css2].join(SourceWebsite::INVALID_CSS_SEPARATOR),
         :next_page_css => nil)
