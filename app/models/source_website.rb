@@ -7,8 +7,6 @@ class SourceWebsite
   field :url_where_fetch_starts, :type => String
   field :url_being_fetched, :type => String
   field :last_fetched_on, :type => DateTime
-  field :first_fetched_on, :type => DateTime
-  field :first_fetched_item_url, :type => String
   field :last_fetched_item_url, :type => String
 
   field :items_list_css, :type => String
@@ -27,8 +25,9 @@ class SourceWebsite
   field :status, :type => String
   field :invalid_item_detail_url_pattern, :type => String
   field :invalid_item_css_patterns, :type => String
-  STATUS_BEING_FETCHED = "being fetched"
+  STATUS_BEING_FETCHED = 'being fetched'
   INVALID_CSS_SEPARATOR = ';'
+  LAST_N_URL_SEPARATOR = '|<--==-->|'
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
   has_many :items
@@ -85,7 +84,7 @@ class SourceWebsite
       logger.error e.backtrace.join("\n")
     ensure
       update_attribute(:status, nil)
-      save_last_fetched_info(self.first_fetched_item_url)
+      save_last_fetched_info
     end
   end
 
@@ -116,7 +115,8 @@ class SourceWebsite
     items_count_of_this_fetch = source_website_object.instance_variable_get(:@items_count_of_this_fetch)
     if (options[:enable_max_items_per_fetch] == true &&
         items_count_of_this_fetch == source_website_object.max_items_per_fetch.to_i ) ||
-        (options[:enable_last_fetched_item_url] == true && original_url == source_website_object.last_fetched_item_url)
+        (options[:enable_last_fetched_item_url] == true &&
+          source_website_object.last_fetched_item_url.include?(original_url))
       logger.info "-- now stop_the_entire_fetch_if_possible,
         items_count_of_this_fetch: #{items_count_of_this_fetch},
         last_fetched_item_url reached? #{original_url == source_website_object.last_fetched_item_url}"
@@ -159,7 +159,6 @@ class SourceWebsite
       end
       stop_the_entire_fetch_if_possible(options, self, Item.get_original_url(raw_item, self), items)
       items_to_create << Item.create_by_html(raw_item, self)
-      save_first_fetched_info(items_to_create.last.try(:original_url)) if @items_count_of_this_fetch == 0
       @items_count_of_this_fetch += 1
     end
   end
@@ -176,12 +175,8 @@ class SourceWebsite
     logger.debug("next_page_url: #{next_page_url}")
     return Nokogiri::HTML(html)
   end
-  def save_first_fetched_info(original_url)
-    logger.debug "saving first_fetched_item_url: #{original_url}"
-    update_attributes!(:first_fetched_item_url => original_url, :first_fetched_on => Time.now)
-  end
-  def save_last_fetched_info(original_url)
-    logger.debug "saving last_fetched_item_url: #{original_url}"
-    update_attributes!(:last_fetched_item_url => original_url, :last_fetched_on => Time.now)
+  def save_last_fetched_info(default = 50)
+    last_fetched_item_url = Item.order_by([:_id, :desc]).limit(default).collect { |item| item.original_url }.join(LAST_N_URL_SEPARATOR)
+    update_attributes!(:last_fetched_item_url => last_fetched_item_url, :last_fetched_on => Time.now)
   end
 end

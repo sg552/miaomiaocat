@@ -21,7 +21,7 @@ describe SourceWebsite do
     it "basic: once fetched, its last_fetched_item_url and last_fetched_on should exist" do
       Rails.logger.info " test last_fetched_item_url:"
       @source_website.fetch_items
-      @source_website.last_fetched_item_url.should == Item.first.original_url
+      @source_website.last_fetched_item_url.should_not be_nil
       @source_website.last_fetched_on.should_not be_nil
     end
 
@@ -123,11 +123,17 @@ describe SourceWebsite do
       @source_website.send(:get_doc).should_not be_nil
       lambda { @source_website.send :get_doc, "invalid address" }.should raise_error
     end
-    it "should save_last_fetched_info" do
+    it "should save_last_fetched_info, e.g.  saved items:
+        - item1,  url_1
+        - item2,  url_2
+        - item3,  url_3
+      , the save_last_fetched_info shoud == 'url_3#{SourceWebsite::LAST_N_URL_SEPARATOR}url_2'" do
+      (1..10).each { |i| create(:item, :original_url => "url_#{i}") }
       @source_website.update_attributes(:save_last_fetched_info => nil, :last_fetched_on => nil)
       url = "this is the url of the last item"
-      @source_website.send(:save_last_fetched_info, url)
-      @source_website.last_fetched_item_url.should == url
+      @source_website.send(:save_last_fetched_info, 3)
+      @source_website.last_fetched_item_url.should ==
+        ["url_10", "url_9", "url_8"].join(SourceWebsite::LAST_N_URL_SEPARATOR)
       @source_website.last_fetched_on.should_not be_nil
     end
     it "should get_base_domain_name_of_current_page" do
@@ -196,13 +202,13 @@ describe SourceWebsite do
       2. item2  (saved second)
       3. item1  (saved third)
       " do
-    @source_website.update_attributes(:next_page_css => nil)
+    @source_website.update_attributes(:next_page_css => nil, :url_where_fetch_starts =>
+      "file://spec/fixtures/page1_with_top_items.html")
     original_item_urls= @source_website.get_entries.collect { | raw_item|
       Item.get_original_url(raw_item, @source_website)
     }
     @source_website.fetch_items(:enable_max_items_per_fetch => false)
-    saved_item_urls = Item.all.collect { | saved_item |
-      saved_item.original_url }
+    saved_item_urls = Item.all.collect { | saved_item | saved_item.original_url }
     original_item_urls.should == saved_item_urls.reverse
   end
 
