@@ -14,6 +14,13 @@ describe SourceWebsite do
       Item.delete_all
       Item.all.size.should == 0
     end
+    it "basic( stop strategy): it should stop if the items_list_css is incorrect" do
+      @source_website.update_attributes(:items_list_css => nil)
+      lambda { @source_website.fetch_items}.should raise_error
+    end
+    it "basic : items_list_css should be true" do
+      @source_website.get_entries.size.should > 10
+    end
     it "basic : should fetch from remote website" do
       @source_website.fetch_items
       Item.all.size.should > 30
@@ -188,6 +195,9 @@ describe SourceWebsite do
     end
   end
   it "should get_entries " do
+    @source_website.update_attributes(
+      :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
+      :next_page_css => nil)
     @source_website.get_entries.size.should > 0
     @source_website.get_entries(:css => ".ico.ding_").size.should > 0
   end
@@ -210,5 +220,18 @@ describe SourceWebsite do
     @source_website.fetch_items(:enable_max_items_per_fetch => false)
     saved_item_urls = Item.all.collect { | saved_item | saved_item.original_url }
     original_item_urls.should == saved_item_urls.reverse
+  end
+
+  it "for the invalid_item_list_css? , should be nil, or incorrect css" do
+    @source_website.update_attributes(:items_list_css => nil)
+    @source_website.send(:invalid_item_list_css?).should == true
+    @source_website.update_attributes(:items_list_css => "some invalid css")
+    @source_website.send(:invalid_item_list_css?).should == true
+    @source_website.update_attributes(:items_list_css => "#infolist tr[logr]",
+      :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html")
+    @source_website.send(:invalid_item_list_css?).should == false
+    @source_website.update_attributes(:items_list_css => "#infolist tr[logr]",
+      :url_where_fetch_starts => "file://spec/fixtures/page1_with_invalid_items_only.html")
+    @source_website.send(:invalid_item_list_css?).should == false
   end
 end

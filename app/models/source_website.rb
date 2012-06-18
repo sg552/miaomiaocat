@@ -51,7 +51,7 @@ class SourceWebsite
       end
     end
     @items_to_create.reverse.each { |item| item.save! }
-    logger.info "== a fetch is done, items_to_create: #{@items_to_create.size} saved"
+    logger.info "== a fetch(#{name}) is done, items_to_create: #{@items_to_create.size} saved"
   end
 
   # ... a test for "around alias"
@@ -65,13 +65,21 @@ class SourceWebsite
   #
   # ==== Options
   #
-  # * <tt>:enable_max_items_per_fetch</tt> -  true/false , default is false.
-  # * <tt>:enable_last_fetched_item_url</tt> - true/false, default is false.
-  # * <tt>:enable_max_pages_per_fetch</tt> - true/false, default is false.
+  # * <tt>:enable_max_items_per_fetch</tt> -  true/false , default is true.
+  # * <tt>:enable_last_fetched_item_url</tt> - true/false, default is true.
+  # * <tt>:enable_max_pages_per_fetch</tt> - true/false, default is true.
   def fetch_items(options = {})
+    {:enable_max_items_per_fetch => true, :enable_last_fetched_item_url => true ,
+      :enable_max_pages_per_fetch => true}.merge(options)
+
     logger.info "now fetching: #{self.name}"
     if self.status == STATUS_BEING_FETCHED
       warning = "the source_website #{self.name} is being fetched... please stop it if you want another fetch"
+      logger.info warning
+      raise warning
+    end
+    if invalid_item_list_css?
+      warning = "the source_website #{self.name} seems has no entries, is the css: /#{items_list_css}/ correct? "
       logger.info warning
       raise warning
     end
@@ -93,9 +101,9 @@ class SourceWebsite
     return get_doc(target_url).css(items_list_css)
   end
 
-  def get_entries(options= {  })
-    opt = { :target_url => url_where_fetch_starts, :css => items_list_css}.merge(options)
-    return get_doc(opt[:target_url]).css(opt[:css])
+  def get_entries(opt = {})
+    option = { :target_url => url_where_fetch_starts, :css => items_list_css}.merge(opt)
+    return get_doc(option[:target_url]).css(option[:css])
   end
 
   # dynamically define methods:
@@ -111,6 +119,9 @@ class SourceWebsite
   end
 
   private
+  def invalid_item_list_css?
+    return items_list_css.blank? || self.get_entries.blank?
+  end
   def stop_the_entire_fetch_if_possible(options, source_website_object, original_url, items)
     items_count_of_this_fetch = source_website_object.instance_variable_get(:@items_count_of_this_fetch)
     if (options[:enable_max_items_per_fetch] == true &&
