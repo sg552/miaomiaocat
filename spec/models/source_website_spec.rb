@@ -54,8 +54,8 @@ describe SourceWebsite do
 
     it "consider the last_fetched_item_url" do
       Rails.logger.info "here -A ==="
-      total_items_count = @source_website.get_items_list.size
-      last_fetched_item_url = Item.get_original_url(@source_website.get_items_list[-3], @source_website)
+      total_items_count = @source_website.get_entries.size
+      last_fetched_item_url = Item.get_original_url(@source_website.get_entries[-3], @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
       @source_website.fetch_items :enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true
       Item.all.size.should == total_items_count - 3
@@ -104,7 +104,7 @@ describe SourceWebsite do
     it "should consider the last_fetched_item_url, assume the last_fetched_item_url is on 2nd page,
         the last but 8 ( -9 in Chinese ^_^ )" do
       next_page_url = @source_website.get_next_page_url(@source_website.url_where_fetch_starts)
-      last_fetched_item = @source_website.get_items_list(next_page_url)[-9]
+      last_fetched_item = @source_website.get_entries(:target_url => next_page_url)[-9]
       last_fetched_item_url = Item.get_original_url(last_fetched_item, @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
       @source_website.update_attribute(:max_pages_per_fetch, 3)
@@ -123,7 +123,7 @@ describe SourceWebsite do
   end
 
   it "should get_items_list" do
-    @source_website.get_items_list.size.should > 30
+    @source_website.get_entries.size.should > 30
   end
   describe "private methods" do
     it "should get_doc" do
@@ -159,12 +159,12 @@ describe SourceWebsite do
     end
     it "should save them if invalid_item_detail_url_pattern was NOT set" do
       @source_website.fetch_items
-      Item.all.size.should == @source_website.get_items_list.size
+      Item.all.size.should == @source_website.get_entries.size
     end
     it "should not save them if invalid_item_detail_url_pattern was set" do
       @source_website.update_attributes(:invalid_item_detail_url_pattern => "/common/cpcredirect.php?")
       @source_website.fetch_items
-      Item.all.size.should < @source_website.get_items_list.size
+      Item.all.size.should < @source_website.get_entries.size
     end
     it "should not save them if invalid_item_css_patterns given, as single one" do
       css = ".ico.ding_"
@@ -176,7 +176,7 @@ describe SourceWebsite do
       css1_elements_count = @source_website.get_entries(:css => css)
       css1_elements_count.size.should > 0
       @source_website.fetch_items
-      Item.all.size.should == @source_website.get_items_list.size - css1_elements_count.size
+      Item.all.size.should == @source_website.get_entries.size - css1_elements_count.size
     end
     it "should not save them if invalid_item_css_patterns given, as single one" do
       css1 = ".ico.ding_"
@@ -191,7 +191,7 @@ describe SourceWebsite do
       css2_elements_count = @source_website.get_entries(:css => css2).size
       css2_elements_count.should > 0
       @source_website.fetch_items
-      Item.all.size.should == @source_website.get_items_list.size - css1_elements_count - css2_elements_count
+      Item.all.size.should == @source_website.get_entries.size - css1_elements_count - css2_elements_count
     end
   end
   it "should get_entries " do
