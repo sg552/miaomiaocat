@@ -28,6 +28,8 @@ class SourceWebsite
   STATUS_BEING_FETCHED = 'being fetched'
   INVALID_CSS_SEPARATOR = ';'
   LAST_N_URL_SEPARATOR = '|<--==-->|'
+  DEFAULT_SLEEP_TIME = 5
+  DEFAULT_COUNT_OF_LAST_FETCHED_URLS = 100
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
   has_many :items
@@ -45,7 +47,7 @@ class SourceWebsite
         url_being_fetched = next_page_url
         @pages_count_for_this_fetch += 1
         if should_stop_reading_for_the_next_page?(next_page_url, options)
-          logger.info "stops the loop because of: should_stop_reading_for_the_next_page?: true"
+          logger.info "-- (name: #{name}) should stop:because of: reached max pages?: true"
           break
         end
       end
@@ -69,8 +71,9 @@ class SourceWebsite
   # * <tt>:enable_last_fetched_item_url</tt> - true/false, default is true.
   # * <tt>:enable_max_pages_per_fetch</tt> - true/false, default is true.
   def fetch_items(options = {})
-    {:enable_max_items_per_fetch => true, :enable_last_fetched_item_url => true ,
-      :enable_max_pages_per_fetch => true}.merge(options)
+    options = options.reverse_merge(:enable_max_items_per_fetch => true,
+      :enable_last_fetched_item_url => true ,
+      :enable_max_pages_per_fetch => true)
 
     logger.info "now fetching: #{self.name}"
     if self.status == STATUS_BEING_FETCHED
@@ -118,21 +121,34 @@ class SourceWebsite
     end
   end
 
+  def fectch_items_as_thread(options = {})
+    options = options.reverse_merge(:sleep_time => DEFAULT_SLEEP_TIME)
+    logger.info "-- now starts fetching: #{self.name}"
+    loop do
+      fetch_items(options)
+      logger.info "-- now sleep a while(#{options[:sleep_time]}) for the next fetch"
+      sleep options[:sleep_time]
+    end
+  end
+
   private
   def invalid_item_list_css?
     return items_list_css.blank? || self.get_entries.blank?
   end
   def stop_the_entire_fetch_if_possible(options, source_website_object, original_url, items)
+    is_to_stop = false
     items_count_of_this_fetch = source_website_object.instance_variable_get(:@items_count_of_this_fetch)
-    if (options[:enable_max_items_per_fetch] == true &&
-        items_count_of_this_fetch == source_website_object.max_items_per_fetch.to_i ) ||
-        (options[:enable_last_fetched_item_url] == true &&
-          source_website_object.last_fetched_item_url.try(:include?, original_url))
-      logger.info "-- now stop_the_entire_fetch_if_possible,
-        items_count_of_this_fetch: #{items_count_of_this_fetch},
-        last_fetched_item_url reached? #{source_website_object.last_fetched_item_url.try(:include?,original_url)}"
-      throw :stop_the_entire_fetch
+    if options[:enable_max_items_per_fetch] == true &&
+        items_count_of_this_fetch == source_website_object.max_items_per_fetch.to_i
+      is_to_stop = true
+      logger.info "--(name:#{name}) stop: reached max_items_per_fetch. ( items_count_of_this_fetch: #{items_count_of_this_fetch}"
     end
+    if options[:enable_last_fetched_item_url] == true &&
+          source_website_object.last_fetched_item_url.try(:include?, original_url)
+      logger.info "--(name:#{name}) stop: last_fetched_item_url reached: #{original_url} "
+      is_to_stop = true
+    end
+    throw :stop_the_entire_fetch if is_to_stop
   end
 
   def should_stop_reading_for_the_next_page?(next_page_url, options)
@@ -186,7 +202,7 @@ class SourceWebsite
     logger.debug("next_page_url: #{next_page_url}")
     return Nokogiri::HTML(html)
   end
-  def save_last_fetched_info(default = 50)
+  def save_last_fetched_info(default = DEFAULT_COUNT_OF_LAST_FETCHED_URLS)
     last_fetched_item_url = Item.order_by([:_id, :desc]).limit(default).collect { |item| item.original_url }.join(LAST_N_URL_SEPARATOR)
     update_attributes!(:last_fetched_item_url => last_fetched_item_url, :last_fetched_on => Time.now)
   end

@@ -234,4 +234,5 @@ describe SourceWebsite do
       :url_where_fetch_starts => "file://spec/fixtures/page1_with_invalid_items_only.html")
     @source_website.send(:invalid_item_list_css?).should == false
   end
+
 end
