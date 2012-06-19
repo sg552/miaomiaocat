@@ -1,6 +1,8 @@
 class Item
   include Mongoid::Document
   include Mongoid::Timestamps
+  include Tire::Model::Search
+  include Tire::Model::Callbacks
   field :content, :type => String
   field :original_url, :type => String
   belongs_to :source_website
