@@ -39,4 +39,4 @@ gem 'cancan', '1.6.7'
 gem 'httparty'
 gem 'rails_config'
 gem 'tire'
-gem 'yajl-ruby'
+gem 'yajl-ruby', '1.0.0' # 1.1.0 mets problems
