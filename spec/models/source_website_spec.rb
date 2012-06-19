@@ -53,7 +53,6 @@ describe SourceWebsite do
     end
 
     it "consider the last_fetched_item_url" do
-      Rails.logger.info "here -A ==="
       total_items_count = @source_website.get_entries.size
       last_fetched_item_url = Item.get_original_url(@source_website.get_entries[-3], @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
@@ -69,15 +68,19 @@ describe SourceWebsite do
     it "should get_next_page_url and get_previous_page_url for valid url " do
 
       # let's start with the 2nd page
-      page_2_url = @source_website.get_next_page_url(@source_website.url_where_fetch_starts)
-      page_3_url = @source_website.get_next_page_url(page_2_url)
+      doc = @source_website.send(:get_doc, @source_website.url_where_fetch_starts)
+      page_2_url = @source_website.get_next_page_url(doc)
+      doc = @source_website.send(:get_doc, page_2_url)
+      page_3_url = @source_website.get_next_page_url(doc)
       page_3_url.should_not be_nil
 
       # then should get 2nd page as the 'previous page'
-      @source_website.get_previous_page_url(page_3_url).should == page_2_url
+      doc = @source_website.send(:get_doc, page_3_url)
+      @source_website.get_previous_page_url(doc).should == page_2_url
     end
     it "should return nil if no next_page_url/previous_page_url found " do
-      @source_website.get_next_page_url('file://spec/fixtures/page_without_next_page_link.html').should == nil
+      doc = @source_website.send :get_doc, 'file://spec/fixtures/page_without_next_page_link.html'
+      @source_website.get_next_page_url(doc).should == nil
     end
 
     it "consider the max_pages_per_fetch" do
@@ -103,7 +106,8 @@ describe SourceWebsite do
     end
     it "should consider the last_fetched_item_url, assume the last_fetched_item_url is on 2nd page,
         the last but 8 ( -9 in Chinese ^_^ )" do
-      next_page_url = @source_website.get_next_page_url(@source_website.url_where_fetch_starts)
+      doc = @source_website.send :get_doc, @source_website.url_where_fetch_starts
+      next_page_url = @source_website.get_next_page_url(doc)
       last_fetched_item = @source_website.get_entries(:target_url => next_page_url)[-9]
       last_fetched_item_url = Item.get_original_url(last_fetched_item, @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
@@ -129,19 +133,6 @@ describe SourceWebsite do
     it "should get_doc" do
       @source_website.send(:get_doc).should_not be_nil
       lambda { @source_website.send :get_doc, "invalid address" }.should raise_error
-    end
-    it "should save_last_fetched_info, e.g.  saved items:
-        - item1,  url_1
-        - item2,  url_2
-        - item3,  url_3
-      , the save_last_fetched_info shoud == 'url_3#{SourceWebsite::LAST_N_URL_SEPARATOR}url_2'" do
-      (1..10).each { |i| create(:item, :original_url => "url_#{i}") }
-      @source_website.update_attributes(:save_last_fetched_info => nil, :last_fetched_on => nil)
-      url = "this is the url of the last item"
-      @source_website.send(:save_last_fetched_info, 3)
-      @source_website.last_fetched_item_url.should ==
-        ["url_10", "url_9", "url_8"].join(SourceWebsite::LAST_N_URL_SEPARATOR)
-      @source_website.last_fetched_on.should_not be_nil
     end
     it "should get_base_domain_name_of_current_page" do
       base_domain_name = "http://bj.58.com"
@@ -233,6 +224,45 @@ describe SourceWebsite do
     @source_website.update_attributes(:items_list_css => "#infolist tr[logr]",
       :url_where_fetch_starts => "file://spec/fixtures/page1_with_invalid_items_only.html")
     @source_website.send(:invalid_item_list_css?).should == false
+  end
+  it "should save last_fetched_item_url from a single page, where:
+    - url1 (item1)
+    - url2 (item2)
+    - url3 (item3)
+    then saved last_fetched_item_url should be:
+    - url1
+    - url2
+    - url3 " do
+    @source_website.update_attributes(:next_page_css => nil, :url_where_fetch_starts =>
+      "file://spec/fixtures/page1_with_top_items.html")
+    @source_website.fetch_items
+    @source_website.last_fetched_item_url.gsub("file://spec", "").should ==
+      ["item1_url", "item2_url", "item3_url"].join(SourceWebsite::LAST_N_URL_SEPARATOR)
+  end
+  it "should save last_fetched_item_url by order. e.g. :
+    before a fetch, the original last_fetched_item_url is:
+    - url_a1
+    - url_a2
+    - url_a3
+    - url_a4
+    - url_a5
+    after a fetch which fechted:
+    - item1_url
+    - item2_url
+    - item3_url
+    then, the updated last_fetched_item_url should be:
+    - item1_url
+    - item2_url
+    - item3_url
+    - url_a1
+    - url_a2" do
+    SourceWebsite::DEFAULT_COUNT_OF_LAST_FETCHED_URLS = 5
+    @source_website.update_attributes(:next_page_css => nil,
+      :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
+      :last_fetched_item_url => ["url_a1", "url_a2", "url_a3","url_a4","url_a5"].join(SourceWebsite::LAST_N_URL_SEPARATOR))
+    @source_website.fetch_items
+    @source_website.last_fetched_item_url.gsub("file://spec", "").should ==
+      ["item1_url", "item2_url", "item3_url", "url_a1", "url_a2"].join(SourceWebsite::LAST_N_URL_SEPARATOR)
   end
 
 end

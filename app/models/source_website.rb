@@ -27,9 +27,9 @@ class SourceWebsite
   field :invalid_item_css_patterns, :type => String
   STATUS_BEING_FETCHED = 'being fetched'
   INVALID_CSS_SEPARATOR = ';'
-  LAST_N_URL_SEPARATOR = '|<--==-->|'
+  LAST_N_URL_SEPARATOR = '###'
   DEFAULT_SLEEP_TIME = 5
-  DEFAULT_COUNT_OF_LAST_FETCHED_URLS = 100
+  DEFAULT_COUNT_OF_LAST_FETCHED_URLS = 5
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
   has_many :items
@@ -38,12 +38,14 @@ class SourceWebsite
     @items_to_create = []
     @items_count_of_this_fetch = 0
     @pages_count_for_this_fetch = 1
+    next_page_url = ""
     url_being_fetched = url_where_fetch_starts
     catch(:stop_the_entire_fetch) do
       loop do
         logger.debug "saving page: #{@pages_count_for_this_fetch}"
-        next_page_url = get_next_page_url(url_being_fetched)
-        save_items_for_current_url_that_being_fetched(url_being_fetched, options, @items_to_create)
+        nokogiri_doc= get_doc(url_being_fetched)
+        save_items_for_current_url_that_being_fetched(nokogiri_doc, options, @items_to_create)
+        next_page_url = get_next_page_url nokogiri_doc
         url_being_fetched = next_page_url
         @pages_count_for_this_fetch += 1
         if should_stop_reading_for_the_next_page?(next_page_url, options)
@@ -87,6 +89,8 @@ class SourceWebsite
       raise warning
     end
     update_attribute(:status, STATUS_BEING_FETCHED)
+    logger.debug "-- last_fetched_item_url: "
+    logger.debug "-- \n #{last_fetched_item_url.split(LAST_N_URL_SEPARATOR).join("\n")}" unless last_fetched_item_url.blank?
     begin
       original_fetch_items(options)
     rescue Exception => e
@@ -99,11 +103,6 @@ class SourceWebsite
     end
   end
 
-  # DEPRECATED, use #get_entries instead
-  def get_items_list(target_url = url_where_fetch_starts)
-    return get_doc(target_url).css(items_list_css)
-  end
-
   def get_entries(opt = {})
     option = { :target_url => url_where_fetch_starts, :css => items_list_css}.merge(opt)
     return get_doc(option[:target_url]).css(option[:css])
@@ -112,9 +111,12 @@ class SourceWebsite
   # dynamically define methods:
   # get_next_page_url
   # get_previous_page_url
+  # usage:
+  #   doc = @source_website.send :get_doc, 'ooxxooxx'
+  #   next_page_url = get_next_page_url(doc)
   ["next", "previous"].each do |some|
-    define_method :"get_#{some}_page_url" do |current_page_url|
-      target_element = get_doc(current_page_url).css(send(:"#{some}_page_css"))
+    define_method :"get_#{some}_page_url" do |nokogiri_doc|
+      target_element = nokogiri_doc.css(send(:"#{some}_page_css"))
       return nil if target_element.blank?
       href = target_element.attribute("href").to_s
       return href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
@@ -155,15 +157,14 @@ class SourceWebsite
     result = next_page_url.blank? ||
       (options[:enable_max_pages_per_fetch] == true && @pages_count_for_this_fetch > max_pages_per_fetch)
     if result
-      logger.debug "enable_max_items_per_fetch: #{options[:enable_max_pages_per_fetch]}"
+      logger.info "--(name: #{name}) should stop: reach max_pages_per_fetch: #{max_pages_per_fetch}"
       logger.debug "next_page_url :#{next_page_url}, (should not be blank)"
       logger.debug "@pages_count_for_this_fetch: #{@pages_count_for_this_fetch}"
-      logger.debug "max_pages_per_fetch: #{max_pages_per_fetch}"
     end
     return result
   end
-  def save_items_for_current_url_that_being_fetched(current_page_url, options, items_to_create)
-    items = get_items_list(current_page_url)
+  def save_items_for_current_url_that_being_fetched(doc, options, items_to_create)
+    items = doc.css(items_list_css)
     items.each do | raw_item |
       item_original_url = Item.get_original_url(raw_item, self)
       if !self.invalid_item_detail_url_pattern.blank? &&
@@ -198,12 +199,14 @@ class SourceWebsite
     logger.info "in source_website.rb, opening url: #{target_url}"
     options = {:headers => {"User-Agent" => Settings.crawler.user_agent}}
     html = MockBrowser.get(target_url, options)
-    next_page_url = Nokogiri::HTML(html).css("#PageControl1_hlk_next")
-    logger.debug("next_page_url: #{next_page_url}")
     return Nokogiri::HTML(html)
   end
   def save_last_fetched_info(default = DEFAULT_COUNT_OF_LAST_FETCHED_URLS)
-    last_fetched_item_url = Item.order_by([:_id, :desc]).limit(default).collect { |item| item.original_url }.join(LAST_N_URL_SEPARATOR)
+    return nil if @items_to_create.blank?
+    logger.debug "now save_last_fetched_info ... @items_to_create.size: #{@items_to_create.size}"
+    original_last_fetch_item_urls = last_fetched_item_url.try(:split, LAST_N_URL_SEPARATOR) || []
+    last_fetched_item_url = (@items_to_create.collect{|item| item.original_url} +
+      original_last_fetch_item_urls )[0, default].join(LAST_N_URL_SEPARATOR)
     update_attributes!(:last_fetched_item_url => last_fetched_item_url, :last_fetched_on => Time.now)
   end
 end
