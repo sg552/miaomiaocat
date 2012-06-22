@@ -24,6 +24,27 @@ require 'spec_helper'
     #end
 
 describe Item do
+  before do
+    articles = [
+      { :id => '1', :type => 'article', :title => 'one',   :tags => ['ruby']           },
+      { :id => '2', :type => 'article', :title => 'two',   :tags => ['ruby', 'python'] },
+      { :id => '3', :type => 'article', :title => 'three', :tags => ['java']           },
+      { :id => '4', :type => 'article', :title => 'four',  :tags => ['ruby', 'php']    }
+    ]
+
+    Tire.index 'articles' do
+      import articles do |documents|
+        documents.each { |document| document[:title].capitalize! }
+      end
+      refresh
+    end
+  end
+  after do
+    Tire.index 'articles' do
+      delete
+    end
+  end
+
   it "should create" do
     index = Tire::Index.new "wokao"
     index.delete
@@ -53,6 +74,16 @@ describe Item do
     end
     s.results.facets['current-tags']['terms'].each do |f|
       puts "#{f['term'].ljust(10)} #{f['count']}"
+    end
+  end
+  it "should query using a hash (like json)" do
+    puts "=== now query using a hash"
+    s = Tire.search 'articles', :query => { :prefix => { :title => 'f' } }
+    puts "s.to_curl: #{s.to_curl}"
+    puts "s.to_json: #{s.to_json}"
+    puts "result: "
+    s.results.each do |document|
+      puts "** #{document.title} [tags: #{document.tags.join(',')}]"
     end
   end
 end
