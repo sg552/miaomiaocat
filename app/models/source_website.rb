@@ -29,7 +29,7 @@ class SourceWebsite
   INVALID_CSS_SEPARATOR = ';'
   LAST_N_URL_SEPARATOR = '###'
   DEFAULT_SLEEP_TIME = 5
-  DEFAULT_COUNT_OF_LAST_FETCHED_URLS = 5
+  #DEFAULT_COUNT_OF_LAST_FETCHED_URLS = 5
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
   has_many :items
@@ -124,7 +124,8 @@ class SourceWebsite
   end
 
   def fectch_items_as_thread(options = {})
-    options = options.reverse_merge(:sleep_time => DEFAULT_SLEEP_TIME)
+    #options = options.reverse_merge(:sleep_time => DEFAULT_SLEEP_TIME)
+    options = options.reverse_merge(:sleep_time => Settings.crawler.default_sleep_time)
     logger.info "-- now starts fetching: #{self.name}"
     loop do
       fetch_items(options)
@@ -201,7 +202,7 @@ class SourceWebsite
     html = MockBrowser.get(target_url, options)
     return Nokogiri::HTML(html)
   end
-  def save_last_fetched_info(default = DEFAULT_COUNT_OF_LAST_FETCHED_URLS)
+  def save_last_fetched_info(default = Settings.crawler.default_count_of_last_fetched_urls)
     return nil if @items_to_create.blank?
     logger.debug "now save_last_fetched_info ... @items_to_create.size: #{@items_to_create.size}"
     original_last_fetch_item_urls = last_fetched_item_url.try(:split, LAST_N_URL_SEPARATOR) || []

@@ -9,3 +9,6 @@ proxy:
 crawler:
   # to make it more like a real user, but not a robot
   user_agent: "Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.142 Safari/535.19"
+  default_count_of_last_fetched_urls: 20
+  # seconds
+  default_sleep_time: 5
