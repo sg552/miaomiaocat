@@ -1,8 +1,8 @@
 class Item
   include Mongoid::Document
   include Mongoid::Timestamps
-  include Tire::Model::Search
-  include Tire::Model::Callbacks
+  #include Tire::Model::Search
+  #include Tire::Model::Callbacks
   field :content, :type => String
   field :original_url, :type => String
   belongs_to :source_website
@@ -19,5 +19,8 @@ class Item
   def self.get_original_url(html_content, source_website)
     url = html_content.css(source_website.item_detail_page_url_css).attribute("href").to_s
     return url.start_with?("http") ? url : source_website.send(:get_base_domain_name_of_current_page) + url
+  end
+  def to_indexed_json
+    self.as_json
   end
 end

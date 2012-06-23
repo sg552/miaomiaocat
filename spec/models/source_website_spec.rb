@@ -84,10 +84,11 @@ describe SourceWebsite do
     end
 
     it "consider the max_pages_per_fetch" do
-      max_records_in_a_page = 37
+      max_records_in_a_page = 40
       max_pages_per_fetch = 3
       @source_website.update_attribute(:max_pages_per_fetch , max_pages_per_fetch)
       @source_website.fetch_items(:enable_max_pages_per_fetch => true)
+      Item.all.size.should > 100
       (2*max_records_in_a_page .. 3*max_records_in_a_page).include?(Item.all.size).should == true
     end
 
@@ -260,6 +261,7 @@ describe SourceWebsite do
     @source_website.update_attributes(:next_page_css => nil,
       :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
       :last_fetched_item_url => ["url_a1", "url_a2", "url_a3","url_a4","url_a5"].join(SourceWebsite::LAST_N_URL_SEPARATOR))
+    Settings.crawler.stub(:default_count_of_last_fetched_urls){ 5 }
     @source_website.fetch_items
     @source_website.last_fetched_item_url.gsub("file://spec", "").should ==
       ["item1_url", "item2_url", "item3_url", "url_a1", "url_a2"].join(SourceWebsite::LAST_N_URL_SEPARATOR)

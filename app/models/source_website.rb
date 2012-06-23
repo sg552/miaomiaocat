@@ -28,8 +28,6 @@ class SourceWebsite
   STATUS_BEING_FETCHED = 'being fetched'
   INVALID_CSS_SEPARATOR = ';'
   LAST_N_URL_SEPARATOR = '###'
-  DEFAULT_SLEEP_TIME = 5
-  #DEFAULT_COUNT_OF_LAST_FETCHED_URLS = 5
   alias_method :url_where_next_fetch_stops, :last_fetched_item_url
 
   has_many :items
@@ -124,12 +122,11 @@ class SourceWebsite
   end
 
   def fectch_items_as_thread(options = {})
-    #options = options.reverse_merge(:sleep_time => DEFAULT_SLEEP_TIME)
     options = options.reverse_merge(:sleep_time => Settings.crawler.default_sleep_time)
     logger.info "-- now starts fetching: #{self.name}"
     loop do
       fetch_items(options)
-      logger.info "-- now sleep a while(#{options[:sleep_time]}) for the next fetch"
+      logger.info "-- now sleep #{options[:sleep_time]}s for the next fetch."
       sleep options[:sleep_time]
     end
   end
