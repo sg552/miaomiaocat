@@ -1,1 +1,1 @@
-bundle exec rake fetch_items RAILS_ENV=production
+bundle exec rake fetch_items_for_the_first_website RAILS_ENV=production

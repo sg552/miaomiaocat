@@ -86,4 +86,5 @@ describe Item do
       puts "** #{document.title} [tags: #{document.tags.join(',')}]"
     end
   end
+
 end

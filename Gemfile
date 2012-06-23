@@ -40,3 +40,5 @@ gem 'httparty'
 gem 'rails_config'
 gem 'tire'
 gem 'yajl-ruby', '1.0.0' # 1.1.0 mets problems
+# for tire's import
+gem 'will_paginate', '~> 3.0.0'

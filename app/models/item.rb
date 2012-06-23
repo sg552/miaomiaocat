@@ -1,8 +1,8 @@
 class Item
   include Mongoid::Document
   include Mongoid::Timestamps
-  #include Tire::Model::Search
-  #include Tire::Model::Callbacks
+  include Tire::Model::Search
+  include Tire::Model::Callbacks
   field :content, :type => String
   field :original_url, :type => String
   belongs_to :source_website
@@ -23,4 +23,8 @@ class Item
   def to_indexed_json
     self.as_json
   end
+  ## for tire's import
+  #def self.paginate args
+  #  self.page args
+  #end
 end
