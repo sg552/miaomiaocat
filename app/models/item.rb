@@ -20,9 +20,6 @@ class Item
     url = html_content.css(source_website.item_detail_page_url_css).attribute("href").to_s
     return url.start_with?("http") ? url : source_website.send(:get_base_domain_name_of_current_page) + url
   end
-  def to_indexed_json
-    self.as_json
-  end
   ## for tire's import
   #def self.paginate args
   #  self.page args
