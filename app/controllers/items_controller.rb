@@ -16,6 +16,7 @@ class ItemsController < ApplicationController
       from (page.to_i - 1) * per_page
     end
     @items = s.results
+    @key_word = key_word
     respond_to do |format|
       format.html # index.html.erb
       format.json { render :json => @items }
