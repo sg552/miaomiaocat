@@ -17,8 +17,9 @@
 
   <tbody>
 <% @items.each do |item| %>
+<% source_website = SourceWebsite.find(item.source_website_id) if SourceWebsite.exists?( :conditions => { :id => item.source_website_id}) %>
   <tr>
-    <td><%= link_to item.source_website.try(:name), item.source_website.try(:url_where_fetch_starts), :target => "_blank" %></td>
+    <td><%= link_to source_website.try(:name), source_website.try(:url_where_fetch_starts), :target => "_blank" %></td>
     <td><%= link_to item.content, item.original_url, :target => "_blank" %> </td>
     <td>
     <%= DateTime.strptime(item.created_at, "%Y-%m-%dT%H:%M:%S+08:00").strftime("%Y-%m-%d %H:%M:%S") %>

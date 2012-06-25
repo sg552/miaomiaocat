@@ -4,6 +4,7 @@ class ItemsController < ApplicationController
   def index
     page = params[:page] || 1
     key_word = params[:key_word] || ""
+    per_page = params[:per_page] || 50
     s = Tire.search 'items' do
       unless key_word.blank?
         query do
@@ -11,8 +12,8 @@ class ItemsController < ApplicationController
         end
       end
       sort { by :created_at, 'desc' }
-      size 50
-      from (page.to_i - 1) * 50
+      size per_page
+      from (page.to_i - 1) * per_page
     end
     @items = s.results
     respond_to do |format|
