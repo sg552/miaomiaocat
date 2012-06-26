@@ -4,6 +4,7 @@
     :placeholder=>"搜索条件，多的用空格分开，比如：东直门 个人" %>
   <%= submit_tag "搜索", :class => "btn" %>
 <% end %>
+<%= page_entries_info @items %>
 <%= paginate @items, :theme => 'twitter-bootstrap' %>
 <table class="table table-striped">
   <thead>
