@@ -20,6 +20,13 @@ class Item
     url = html_content.css(source_website.item_detail_page_url_css).attribute("href").to_s
     return url.start_with?("http") ? url : source_website.send(:get_base_domain_name_of_current_page) + url
   end
+  # see : http://stackoverflow.com/questions/5123993/json-encoding-wrongly-escaped-rails-3-ruby-1-9-2
+  # see : http://stackoverflow.com/a/6744852/445908
+  alias_method :original_to_indexed_json, :to_indexed_json
+  def to_indexed_json
+    original_to_indexed_json.gsub!(/\\u([0-9a-z]{4})/) {|s| [$1.to_i(16)].pack("U")}
+  end
+
   ## for tire's import
   #def self.paginate args
   #  self.page args
