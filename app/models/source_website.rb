@@ -1,28 +1,25 @@
 class SourceWebsite
   include Mongoid::Document
   include Mongoid::Timestamps
+
+  embedded_in :crawler
+
   field :name, :type => String
   field :url, :type => String
 
   field :url_where_fetch_starts, :type => String
-  field :url_being_fetched, :type => String
-  field :last_fetched_on, :type => DateTime
+  #field :url_being_fetched, :type => String
+  #field :last_fetched_on, :type => DateTime
   field :last_fetched_item_url, :type => String
 
   field :items_list_css, :type => String
   field :item_detail_page_url_css, :type => String
-  field :sample_items_list_content, :type => String
-  field :sample_item_content, :type => String
-
-  field :max_pages_per_fetch, :type => Integer
-  field :max_items_per_fetch, :type => Integer
-  field :item_published_at_css, :type => String
-
-  field :price_css, :type => String
-  field :previous_page_css, :type => String
-
   field :next_page_css, :type => String
-  field :status, :type => String
+
+  #field :max_pages_per_fetch, :type => Integer
+  #field :max_items_per_fetch, :type => Integer
+
+  #field :status, :type => String
   field :invalid_item_detail_url_pattern, :type => String
   field :invalid_item_css_patterns, :type => String
   STATUS_BEING_FETCHED = 'being fetched'
