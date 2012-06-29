@@ -6,8 +6,9 @@ class Item
   field :content, :type => String
   field :original_url, :type => String
   belongs_to :source_website
+  validates_uniqueness_of :original_url, :message => "original_url duplicated!"
 
-  def self.create_by_html(html_content, source_website)
+  def self.new_by_html(html_content, source_website)
     original_url = get_original_url(html_content, source_website)
     item = Item.new(:content => html_content.content,
       :original_url => original_url,

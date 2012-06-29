@@ -184,7 +184,7 @@ class SourceWebsite
         next if temp_should_next_item
       end
       stop_the_entire_fetch_if_possible(options, self, Item.get_original_url(raw_item, self), items)
-      items_to_create << Item.create_by_html(raw_item, self)
+      items_to_create << Item.new_by_html(raw_item, self)
       @items_count_of_this_fetch += 1
     end
   end

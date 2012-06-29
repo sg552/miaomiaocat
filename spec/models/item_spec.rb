@@ -39,8 +39,16 @@ describe Item do
   end
 
 
-  it "should create_by_html" do
-    item = Item.create_by_html(Nokogiri::HTML(@content), @source_website)
+  it "should new_by_html" do
+    item = Item.new_by_html(Nokogiri::HTML(@content), @source_website)
     item.original_url.should == @original_url
+  end
+
+  it "duplicated original_url should be invalid" do
+    item = Item.new_by_html(Nokogiri::HTML(@content), @source_website)
+    item.valid?.should == true
+    item.save!
+    invalid_item = Item.new(:original_url => item.original_url)
+    invalid_item.invalid?.should == true
   end
 end
