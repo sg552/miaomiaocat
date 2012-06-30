@@ -15,4 +15,16 @@ class Crawler
   field :status, :type => String
   STATUS_BEING_FETCHED = "being fetched"
 
+  def get_entries(opt = {})
+    option = { :target_url => url_where_fetch_starts,
+      :css => source_website.items_list_css}.merge(opt)
+    return get_doc(option[:target_url]).css(option[:css])
+  end
+  private
+  def get_doc(target_url = url_where_fetch_starts)
+    logger.info "in source_website.rb, opening url: #{target_url}"
+    options = {:headers => {"User-Agent" => Settings.crawler.user_agent}}
+    html = MockBrowser.get(target_url, options)
+    return Nokogiri::HTML(html)
+  end
 end
