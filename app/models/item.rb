@@ -19,7 +19,7 @@ class Item
   end
   def self.get_original_url(html_content, source_website)
     url = html_content.css(source_website.item_detail_page_url_css).attribute("href").to_s
-    return url.start_with?("http") ? url : source_website.send(:get_base_domain_name_of_current_page) + url
+    return url.start_with?("http") ? url : source_website.crawler.send(:get_base_domain_name_of_current_page) + url
   end
   # see : http://stackoverflow.com/questions/5123993/json-encoding-wrongly-escaped-rails-3-ruby-1-9-2
   # see : http://stackoverflow.com/a/6744852/445908

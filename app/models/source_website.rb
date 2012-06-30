@@ -32,9 +32,9 @@ class SourceWebsite
     catch(:stop_the_entire_fetch) do
       loop do
         logger.debug "saving page: #{@pages_count_for_this_fetch}"
-        nokogiri_doc= get_doc(url_being_fetched)
+        nokogiri_doc= crawler.get_doc(url_being_fetched)
         save_items_for_current_url_that_being_fetched(nokogiri_doc, options, @items_to_create)
-        next_page_url = get_next_page_url nokogiri_doc
+        next_page_url = crawler.get_next_page_url nokogiri_doc
         url_being_fetched = next_page_url
         @pages_count_for_this_fetch += 1
         if should_stop_reading_for_the_next_page?(next_page_url, options)
@@ -90,18 +90,6 @@ class SourceWebsite
       crawler.update_attribute(:status, nil)
       save_last_fetched_info
     end
-  end
-
-  def get_entries(opt = {})
-    option = { :target_url => url_where_fetch_starts, :css => items_list_css}.merge(opt)
-    return get_doc(option[:target_url]).css(option[:css])
-  end
-
-  def get_next_page_url(nokogiri_doc)
-    target_element = nokogiri_doc.css(send("next_page_css"))
-    return nil if target_element.blank?
-    href = target_element.attribute("href").to_s
-    return href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
   end
 
   def fectch_items_as_thread(options = {})
@@ -171,17 +159,6 @@ class SourceWebsite
       items_to_create << Item.new_by_html(raw_item, self)
       @items_count_of_this_fetch += 1
     end
-  end
-  def get_base_domain_name_of_current_page
-    require 'uri'
-    temp = URI.parse(url_where_fetch_starts)
-    "#{temp.scheme}://#{temp.host}"
-  end
-  def get_doc(target_url = url_where_fetch_starts)
-    logger.info "in source_website.rb, opening url: #{target_url}"
-    options = {:headers => {"User-Agent" => Settings.crawler.user_agent}}
-    html = MockBrowser.get(target_url, options)
-    return Nokogiri::HTML(html)
   end
   def save_last_fetched_info(default = Settings.crawler.default_count_of_last_fetched_urls)
     return nil if @items_to_create.blank?

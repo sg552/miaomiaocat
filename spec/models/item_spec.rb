@@ -3,7 +3,8 @@ require 'spec_helper'
 describe Item do
   before do
     @item = create(:item)
-    @source_website = create(:source_website)
+    @crawler = create(:crawler)
+    @source_website = @crawler.source_website
     @original_url = "http://bj.58.com/zufang/9883174197507x.shtml"
     @price = "1800"
     @content = %Q{
@@ -35,7 +36,7 @@ describe Item do
     }
     @source_website.update_attribute :url_where_fetch_starts, "http://site.com"
     url_from_related_path = Item.get_original_url(Nokogiri::HTML(@content), @source_website)
-    url_from_related_path.should == @source_website.send(:get_base_domain_name_of_current_page) + related_url
+    url_from_related_path.should == @crawler.send(:get_base_domain_name_of_current_page) + related_url
     url_from_related_path.should =~ /^http/
   end
 

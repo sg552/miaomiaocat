@@ -60,18 +60,16 @@ describe Crawler do
       @source_website.update_attribute(:next_page_css, ".pager .next")
     end
     it "should get_next_page_url for valid url " do
-
       # let's start with the 2nd page
-      doc = @source_website.send(:get_doc, @source_website.url_where_fetch_starts)
-      page_2_url = @source_website.get_next_page_url(doc)
-      doc = @source_website.send(:get_doc, page_2_url)
-      page_3_url = @source_website.get_next_page_url(doc)
+      doc = @crawler.send(:get_doc, @source_website.url_where_fetch_starts)
+      page_2_url = @crawler.get_next_page_url(doc)
+      doc = @crawler.send(:get_doc, page_2_url)
+      page_3_url = @crawler.get_next_page_url(doc)
       page_3_url.should_not be_nil
-
     end
     it "should return nil if no next_page_url found " do
-      doc = @source_website.send :get_doc, 'file://spec/fixtures/page_without_next_page_link.html'
-      @source_website.get_next_page_url(doc).should == nil
+      doc = @crawler.send :get_doc, 'file://spec/fixtures/page_without_next_page_link.html'
+      @crawler.get_next_page_url(doc).should == nil
     end
 
     it "consider the max_pages_per_fetch" do
@@ -102,8 +100,8 @@ describe Crawler do
     end
     it "should consider the last_fetched_item_url, assume the last_fetched_item_url is on 2nd page,
         the last but 3 ( -4 in Chinese ^_^ )" do
-      doc = @source_website.send :get_doc, @source_website.url_where_fetch_starts
-      next_page_url = @source_website.get_next_page_url(doc)
+      doc = @crawler.send :get_doc, @source_website.url_where_fetch_starts
+      next_page_url = @crawler.get_next_page_url(doc)
       last_fetched_item = @crawler.get_entries(:target_url => next_page_url)[-4]
       last_fetched_item_url = Item.get_original_url(last_fetched_item, @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
@@ -169,13 +167,13 @@ describe Crawler do
   end
   describe "private methods" do
     it "should get_doc" do
-      @source_website.send(:get_doc).should_not be_nil
-      lambda { @source_website.send :get_doc, "invalid address" }.should raise_error
+      @crawler.send(:get_doc).should_not be_nil
+      lambda { @crawler.send :get_doc, "invalid address" }.should raise_error
     end
     it "should get_base_domain_name_of_current_page" do
       base_domain_name = "http://bj.58.com"
       @source_website.update_attribute(:url_where_fetch_starts, base_domain_name + "/zufang?ooxxooxx")
-      @source_website.send(:get_base_domain_name_of_current_page).should == base_domain_name
+      @crawler.send(:get_base_domain_name_of_current_page).should == base_domain_name
     end
   end
   it "the saved items should keep the order from the page where they come ,e.g.:
