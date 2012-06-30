@@ -15,7 +15,7 @@ describe Crawler do
       lambda { @source_website.fetch_items}.should raise_error
     end
     it "basic : items_list_css should be true" do
-      @source_website.get_entries.size.should == MAX_RECORD_IN_ONE_PAGE
+      @crawler.get_entries.size.should == MAX_RECORD_IN_ONE_PAGE
     end
     it "basic : should perform fetch" do
       @source_website.fetch_items
@@ -48,8 +48,8 @@ describe Crawler do
     end
 
     it "consider the last_fetched_item_url" do
-      total_items_count = @source_website.get_entries.size
-      last_fetched_item_url = Item.get_original_url(@source_website.get_entries[-3], @source_website)
+      total_items_count = @crawler.get_entries.size
+      last_fetched_item_url = Item.get_original_url(@crawler.get_entries[-3], @source_website)
       @source_website.update_attribute :last_fetched_item_url, last_fetched_item_url
       @source_website.fetch_items
       Item.all.size.should == total_items_count - 3
@@ -104,7 +104,7 @@ describe Crawler do
         the last but 3 ( -4 in Chinese ^_^ )" do
       doc = @source_website.send :get_doc, @source_website.url_where_fetch_starts
       next_page_url = @source_website.get_next_page_url(doc)
-      last_fetched_item = @source_website.get_entries(:target_url => next_page_url)[-4]
+      last_fetched_item = @crawler.get_entries(:target_url => next_page_url)[-4]
       last_fetched_item_url = Item.get_original_url(last_fetched_item, @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
       @source_website.update_attribute(:max_pages_per_fetch, 3)
@@ -128,12 +128,12 @@ describe Crawler do
     end
     it "should save them if invalid_item_detail_url_pattern was NOT set" do
       @source_website.fetch_items
-      Item.all.size.should == @source_website.get_entries.size
+      Item.all.size.should == @crawler.get_entries.size
     end
     it "should not save them if invalid_item_detail_url_pattern was set" do
       @source_website.update_attributes(:invalid_item_detail_url_pattern => "/common/cpcredirect.php?")
       @source_website.fetch_items
-      Item.all.size.should < @source_website.get_entries.size
+      Item.all.size.should < @crawler.get_entries.size
     end
     it "should not save them if invalid_item_css_patterns given, as single one" do
       css = ".ico.ding_"
@@ -141,10 +141,10 @@ describe Crawler do
         :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
         :invalid_item_css_patterns => css,
         :next_page_css => nil)
-      css1_elements_count = @source_website.get_entries(:css => css)
+      css1_elements_count = @crawler.get_entries(:css => css)
       css1_elements_count.size.should > 0
       @source_website.fetch_items
-      Item.all.size.should == @source_website.get_entries.size - css1_elements_count.size
+      Item.all.size.should == @crawler.get_entries.size - css1_elements_count.size
     end
     it "should not save them if invalid_item_css_patterns given, as single one" do
       css1 = ".ico.ding_"
@@ -153,17 +153,17 @@ describe Crawler do
         :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
         :invalid_item_css_patterns => [css1, css2].join(SourceWebsite::INVALID_CSS_SEPARATOR),
         :next_page_css => nil)
-      css1_elements_count = @source_website.get_entries(:css => css1).size
+      css1_elements_count = @crawler.get_entries(:css => css1).size
       css1_elements_count.should > 0
-      css2_elements_count = @source_website.get_entries(:css => css2).size
+      css2_elements_count = @crawler.get_entries(:css => css2).size
       css2_elements_count.should > 0
       @source_website.fetch_items
-      Item.all.size.should == @source_website.get_entries.size - css1_elements_count - css2_elements_count
+      Item.all.size.should == @crawler.get_entries.size - css1_elements_count - css2_elements_count
     end
   end
   it "should get_entries " do
     @source_website.update_attribute :next_page_css, nil
-    @crawler.update_attribute :url_where_fetch_starts, "file://spec/fixtures/page1_with_top_items.html"
+    @source_website.update_attribute :url_where_fetch_starts, "file://spec/fixtures/page1_with_top_items.html"
     @crawler.get_entries.size.should > 0
     @crawler.get_entries(:css => ".ico.ding_").size.should > 0
   end
@@ -190,7 +190,7 @@ describe Crawler do
       " do
     @source_website.update_attributes(:next_page_css => nil, :url_where_fetch_starts =>
       "file://spec/fixtures/page1_with_top_items.html")
-    original_item_urls= @source_website.get_entries.collect { | raw_item|
+    original_item_urls= @crawler.get_entries.collect { | raw_item|
       Item.get_original_url(raw_item, @source_website)
     }
     @source_website.fetch_items(:enable_max_items_per_fetch => false)

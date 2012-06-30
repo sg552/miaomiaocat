@@ -116,7 +116,7 @@ class SourceWebsite
 
   private
   def invalid_item_list_css?
-    return items_list_css.blank? || self.get_entries.blank?
+    return items_list_css.blank? || crawler.get_entries.blank?
   end
   def stop_the_entire_fetch_if_possible(options, source_website_object, original_url, items)
     is_to_stop = false
