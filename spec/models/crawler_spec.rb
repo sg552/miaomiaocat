@@ -28,7 +28,7 @@ describe Crawler do
       @crawler.last_fetched_on.should_not be_nil
     end
 
-    it "for a source_website which state is : RUNNING, should not start a new fetch" do
+    it "for a crawler which state is : RUNNING, should not start a new fetch" do
       @crawler.update_attribute(:status, Crawler::RUNNING)
       lambda { @crawler.fetch_items}.should raise_error
     end
@@ -50,7 +50,7 @@ describe Crawler do
     it "consider the last_fetched_item_url" do
       total_items_count = @crawler.get_entries.size
       last_fetched_item_url = Item.get_original_url(@crawler.get_entries[-3], @source_website)
-      @source_website.update_attribute :last_fetched_item_url, last_fetched_item_url
+      @crawler.update_attribute :last_fetched_item_url, last_fetched_item_url
       @crawler.fetch_items
       Item.all.size.should == total_items_count - 3
     end
@@ -73,8 +73,13 @@ describe Crawler do
     end
 
     it "consider the max_pages_per_fetch" do
+      max_pages_per_fetch = 2
+      @crawler.update_attribute(:max_pages_per_fetch , max_pages_per_fetch)
+      @crawler.fetch_items(:enable_max_pages_per_fetch => true)
+      (1*MAX_RECORD_IN_ONE_PAGE.. 2*MAX_RECORD_IN_ONE_PAGE).include?(Item.all.size).should == true
+
       max_pages_per_fetch = 3
-      @source_website.update_attribute(:max_pages_per_fetch , max_pages_per_fetch)
+      @crawler.update_attribute(:max_pages_per_fetch , max_pages_per_fetch)
       @crawler.fetch_items(:enable_max_pages_per_fetch => true)
       (2*MAX_RECORD_IN_ONE_PAGE.. 3*MAX_RECORD_IN_ONE_PAGE).include?(Item.all.size).should == true
     end
@@ -82,21 +87,21 @@ describe Crawler do
     it "should_stop_reading_for_the_next_page if next_page_url is blank,
       or reached max_pages_per_fetch, e.g. max_pages_per_fetch = 3, should 'stop reading next page' at page == 3 " do
       # should stop if next_page_url is blank
-      @source_website.send(:"should_stop_reading_for_the_next_page?", nil, {}).should == true
+      @crawler.send(:"should_stop_reading_for_the_next_page?", nil, {}).should == true
 
       max_pages_per_fetch = 2
       option = {:enable_max_pages_per_fetch => true}
 
       @crawler.update_attribute(:max_pages_per_fetch, max_pages_per_fetch)
 
-      @source_website.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch - 1)
-      @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_next_page_url", option).should == false
+      @crawler.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch - 1)
+      @crawler.send(:"should_stop_reading_for_the_next_page?", "valid_next_page_url", option).should == false
 
-      @source_website.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch )
-      @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_next_page_url", option).should == false
+      @crawler.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch )
+      @crawler.send(:"should_stop_reading_for_the_next_page?", "valid_next_page_url", option).should == false
 
-      @source_website.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch + 1)
-      @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_next_page_url", option).should == true
+      @crawler.instance_variable_set(:@pages_count_for_this_fetch, max_pages_per_fetch + 1)
+      @crawler.send(:"should_stop_reading_for_the_next_page?", "valid_next_page_url", option).should == true
     end
     it "should consider the last_fetched_item_url, assume the last_fetched_item_url is on 2nd page,
         the last but 3 ( -4 in Chinese ^_^ )" do
@@ -104,8 +109,8 @@ describe Crawler do
       next_page_url = @crawler.get_next_page_url(doc)
       last_fetched_item = @crawler.get_entries(:target_url => next_page_url)[-4]
       last_fetched_item_url = Item.get_original_url(last_fetched_item, @source_website)
-      @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
-      @source_website.update_attribute(:max_pages_per_fetch, 3)
+      @crawler.update_attribute(:last_fetched_item_url, last_fetched_item_url)
+      @crawler.update_attribute(:max_pages_per_fetch, 3)
       @crawler.fetch_items(:enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true)
       Item.all.size.should < 2 * MAX_RECORD_IN_ONE_PAGE
     end
@@ -149,7 +154,7 @@ describe Crawler do
       css2 = ".ico.ding"
       @source_website.update_attributes(
         :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
-        :invalid_item_css_patterns => [css1, css2].join(SourceWebsite::INVALID_CSS_SEPARATOR),
+        :invalid_item_css_patterns => [css1, css2].join(Crawler::INVALID_CSS_SEPARATOR),
         :next_page_css => nil)
       css1_elements_count = @crawler.get_entries(:css => css1).size
       css1_elements_count.should > 0

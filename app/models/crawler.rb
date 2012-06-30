@@ -129,7 +129,7 @@ class Crawler
       logger.info "--(name:#{name}) stop: reached max_items_per_fetch. ( items_count_of_this_fetch: #{items_count_of_this_fetch}"
     end
     if options[:enable_last_fetched_item_url] == true &&
-          source_website_object.last_fetched_item_url.try(:include?, original_url)
+          last_fetched_item_url.try(:include?, original_url)
       logger.info "--(name:#{name}) stop: last_fetched_item_url reached: #{original_url} "
       is_to_stop = true
     end
