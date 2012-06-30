@@ -79,7 +79,7 @@ class SourceWebsitesController < ApplicationController
 
   # POST
   def fetch
-    @source_website.fetch_items(:enable_max_items_per_fetch => true,
+    @source_website.crawler.fetch_items(:enable_max_items_per_fetch => true,
       :enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true)
     render :text => "fetching..."
   end

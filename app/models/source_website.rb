@@ -103,9 +103,9 @@ class SourceWebsite
   end
 
   private
-  def invalid_item_list_css?
-    return items_list_css.blank? || crawler.get_entries.blank?
-  end
+  #def invalid_item_list_css?
+  #  return items_list_css.blank? || crawler.get_entries.blank?
+  #end
   def stop_the_entire_fetch_if_possible(options, source_website_object, original_url, items)
     is_to_stop = false
     items_count_of_this_fetch = source_website_object.instance_variable_get(:@items_count_of_this_fetch)

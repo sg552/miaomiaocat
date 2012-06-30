@@ -12,25 +12,25 @@ describe Crawler do
     end
     it "basic( stop strategy): it should stop if the items_list_css is incorrect" do
       @source_website.update_attributes(:items_list_css => nil)
-      lambda { @source_website.fetch_items}.should raise_error
+      lambda { @crawler.fetch_items}.should raise_error
     end
     it "basic : items_list_css should be true" do
       @crawler.get_entries.size.should == MAX_RECORD_IN_ONE_PAGE
     end
     it "basic : should perform fetch" do
-      @source_website.fetch_items
+      @crawler.fetch_items
       Item.all.size.should == MAX_RECORD_IN_ONE_PAGE
     end
     it "basic: once fetched, its last_fetched_item_url and last_fetched_on should exist" do
       Rails.logger.info " test last_fetched_item_url:"
-      @source_website.fetch_items
-      @source_website.last_fetched_item_url.should_not be_nil
-      @source_website.last_fetched_on.should_not be_nil
+      @crawler.fetch_items
+      @crawler.last_fetched_item_url.should_not be_nil
+      @crawler.last_fetched_on.should_not be_nil
     end
 
-    it "for a source_website which state is : STATUS_BEING_FETCHED, should not start a new fetch" do
-      @crawler.update_attribute(:status, SourceWebsite::STATUS_BEING_FETCHED)
-      lambda { @source_website.fetch_items}.should raise_error
+    it "for a source_website which state is : RUNNING, should not start a new fetch" do
+      @crawler.update_attribute(:status, Crawler::RUNNING)
+      lambda { @crawler.fetch_items}.should raise_error
     end
 
     it "for a fetch, should keep the orders of the items. " do
@@ -38,12 +38,12 @@ describe Crawler do
   end
   describe "advanced fetch: for a single page(no pagination)" do
     before do
-      @source_website.update_attribute :max_pages_per_fetch, 1
+      @crawler.update_attribute :max_pages_per_fetch, 1
     end
     it "consider the max_items_per_fetch in 1 page" do
-      max_items_per_fetch = 12
+      max_items_per_fetch = 8
       @crawler.update_attribute :max_items_per_fetch, max_items_per_fetch
-      @source_website.fetch_items
+      @crawler.fetch_items
       Item.all.size.should <= max_items_per_fetch
     end
 
@@ -51,7 +51,7 @@ describe Crawler do
       total_items_count = @crawler.get_entries.size
       last_fetched_item_url = Item.get_original_url(@crawler.get_entries[-3], @source_website)
       @source_website.update_attribute :last_fetched_item_url, last_fetched_item_url
-      @source_website.fetch_items
+      @crawler.fetch_items
       Item.all.size.should == total_items_count - 3
     end
   end
@@ -75,7 +75,7 @@ describe Crawler do
     it "consider the max_pages_per_fetch" do
       max_pages_per_fetch = 3
       @source_website.update_attribute(:max_pages_per_fetch , max_pages_per_fetch)
-      @source_website.fetch_items(:enable_max_pages_per_fetch => true)
+      @crawler.fetch_items(:enable_max_pages_per_fetch => true)
       (2*MAX_RECORD_IN_ONE_PAGE.. 3*MAX_RECORD_IN_ONE_PAGE).include?(Item.all.size).should == true
     end
 
@@ -106,7 +106,7 @@ describe Crawler do
       last_fetched_item_url = Item.get_original_url(last_fetched_item, @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
       @source_website.update_attribute(:max_pages_per_fetch, 3)
-      @source_website.fetch_items(:enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true)
+      @crawler.fetch_items(:enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true)
       Item.all.size.should < 2 * MAX_RECORD_IN_ONE_PAGE
     end
 
@@ -114,7 +114,7 @@ describe Crawler do
       max_items_per_fetch = 15  ( in page2), then the fetch should stop after fetch 50th item " do
       max_items_per_fetch = 30
       @crawler.update_attribute :max_items_per_fetch, max_items_per_fetch
-      @source_website.fetch_items
+      @crawler.fetch_items
       Item.all.size.should == max_items_per_fetch
     end
   end
@@ -125,12 +125,12 @@ describe Crawler do
         :next_page_css => nil)
     end
     it "should save them if invalid_item_detail_url_pattern was NOT set" do
-      @source_website.fetch_items
+      @crawler.fetch_items
       Item.all.size.should == @crawler.get_entries.size
     end
     it "should not save them if invalid_item_detail_url_pattern was set" do
       @source_website.update_attributes(:invalid_item_detail_url_pattern => "/common/cpcredirect.php?")
-      @source_website.fetch_items
+      @crawler.fetch_items
       Item.all.size.should < @crawler.get_entries.size
     end
     it "should not save them if invalid_item_css_patterns given, as single one" do
@@ -141,7 +141,7 @@ describe Crawler do
         :next_page_css => nil)
       css1_elements_count = @crawler.get_entries(:css => css)
       css1_elements_count.size.should > 0
-      @source_website.fetch_items
+      @crawler.fetch_items
       Item.all.size.should == @crawler.get_entries.size - css1_elements_count.size
     end
     it "should not save them if invalid_item_css_patterns given, as single one" do
@@ -155,7 +155,7 @@ describe Crawler do
       css1_elements_count.should > 0
       css2_elements_count = @crawler.get_entries(:css => css2).size
       css2_elements_count.should > 0
-      @source_website.fetch_items
+      @crawler.fetch_items
       Item.all.size.should == @crawler.get_entries.size - css1_elements_count - css2_elements_count
     end
   end
@@ -191,24 +191,25 @@ describe Crawler do
     original_item_urls= @crawler.get_entries.collect { | raw_item|
       Item.get_original_url(raw_item, @source_website)
     }
-    @source_website.fetch_items(:enable_max_items_per_fetch => false)
+    @crawler.fetch_items(:enable_max_items_per_fetch => false)
     saved_item_urls = Item.all.collect { | saved_item | saved_item.original_url }
     original_item_urls.should == saved_item_urls.reverse
   end
 
   it "for the invalid_item_list_css? , should be nil, or incorrect css" do
     @source_website.update_attributes(:items_list_css => nil)
-    @source_website.send(:invalid_item_list_css?).should == true
+    @crawler.send(:invalid_item_list_css?).should == true
     @source_website.update_attributes(:items_list_css => "some invalid css")
-    @source_website.send(:invalid_item_list_css?).should == true
+    @crawler.send(:invalid_item_list_css?).should == true
     @source_website.update_attributes(:items_list_css => "#infolist tr[logr]",
       :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html")
-    @source_website.send(:invalid_item_list_css?).should == false
+    @crawler.send(:invalid_item_list_css?).should == false
     @source_website.update_attributes(:items_list_css => "#infolist tr[logr]",
       :url_where_fetch_starts => "file://spec/fixtures/page1_with_invalid_items_only.html")
-    @source_website.send(:invalid_item_list_css?).should == false
+    @crawler.send(:invalid_item_list_css?).should == false
   end
-  it "should save last_fetched_item_url from a single page, where:
+  it "when setting default_count_of_last_fetched_urls = 3,
+    should save last_fetched_item_url from a single page, where:
     - url1 (item1)
     - url2 (item2)
     - url3 (item3)
@@ -218,12 +219,13 @@ describe Crawler do
     - url3 " do
     @source_website.update_attributes(:next_page_css => nil, :url_where_fetch_starts =>
       "file://spec/fixtures/page1_with_top_items.html")
-    @source_website.fetch_items
-    @source_website.last_fetched_item_url.gsub("file://spec", "").should ==
-      ["item1_url", "item2_url", "item3_url"].join(SourceWebsite::LAST_N_URL_SEPARATOR)
+    Settings.crawler.stub(:default_count_of_last_fetched_urls){ 3 }
+    @crawler.fetch_items
+    @crawler.last_fetched_item_url.gsub("file://spec", "").should ==
+      ["item1_url", "item2_url", "item3_url"].join(Crawler::LAST_N_URL_SEPARATOR)
   end
   it "should save last_fetched_item_url by order. e.g. :
-    before a fetch, the original last_fetched_item_url is:
+    before a fetch, the original last_fetched_item_url is: ( the order shown on the page)
     - url_a1
     - url_a2
     - url_a3
@@ -241,11 +243,11 @@ describe Crawler do
     - url_a2" do
     SourceWebsite::DEFAULT_COUNT_OF_LAST_FETCHED_URLS = 5
     @source_website.update_attributes(:next_page_css => nil,
-      :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html",
-      :last_fetched_item_url => ["url_a1", "url_a2", "url_a3","url_a4","url_a5"].join(SourceWebsite::LAST_N_URL_SEPARATOR))
+      :url_where_fetch_starts => "file://spec/fixtures/page1_with_top_items.html")
+    @crawler.update_attributes( :last_fetched_item_url => ["url_a1", "url_a2", "url_a3","url_a4","url_a5"].join(Crawler::LAST_N_URL_SEPARATOR))
     Settings.crawler.stub(:default_count_of_last_fetched_urls){ 5 }
-    @source_website.fetch_items
-    @source_website.last_fetched_item_url.gsub("file://spec", "").should ==
-      ["item1_url", "item2_url", "item3_url", "url_a1", "url_a2"].join(SourceWebsite::LAST_N_URL_SEPARATOR)
+    @crawler.fetch_items
+    @crawler.last_fetched_item_url.gsub("file://spec", "").should ==
+      ["item1_url", "item2_url", "item3_url", "url_a1", "url_a2"].join(Crawler::LAST_N_URL_SEPARATOR)
   end
 end
