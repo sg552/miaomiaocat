@@ -2,44 +2,14 @@ require 'spec_helper'
 
 describe SourceWebsite do
   before  do
-    @source_website = create(:source_website)
+    @crawler = create(:crawler)
+    @source_website = @crawler.source_website
+    @max_records_in_a_test_page = 10
   end
-  it "should save" do
+  it "fixtures should be saved " do
     SourceWebsite.all.size.should > 0
   end
 
-  describe "basic fetch, for a single page" do
-    before do
-      @source_website.update_attributes(:last_fetched_item_url => nil, :next_page_css => nil)
-      Item.delete_all
-      Item.all.size.should == 0
-    end
-    it "basic( stop strategy): it should stop if the items_list_css is incorrect" do
-      @source_website.update_attributes(:items_list_css => nil)
-      lambda { @source_website.fetch_items}.should raise_error
-    end
-    it "basic : items_list_css should be true" do
-      @source_website.get_entries.size.should > 10
-    end
-    it "basic : should fetch from remote website" do
-      @source_website.fetch_items
-      Item.all.size.should > 30
-    end
-    it "basic: once fetched, its last_fetched_item_url and last_fetched_on should exist" do
-      Rails.logger.info " test last_fetched_item_url:"
-      @source_website.fetch_items
-      @source_website.last_fetched_item_url.should_not be_nil
-      @source_website.last_fetched_on.should_not be_nil
-    end
-
-    it "for a source_website which state is : STATUS_BEING_FETCHED, should not start a new fetch" do
-      @source_website.update_attribute(:status, SourceWebsite::STATUS_BEING_FETCHED)
-      lambda { @source_website.fetch_items}.should raise_error
-    end
-
-    it "for a fetch, should keep the orders of the items. " do
-    end
-  end
 
   describe "advanced fetch: for a single page(no pagination)" do
     before do
@@ -63,9 +33,8 @@ describe SourceWebsite do
   describe "advanced fetch: across pagination" do
     before do
       @source_website.update_attribute(:next_page_css, ".pager .next")
-      @source_website.update_attribute(:previous_page_css, ".pager .prv")
     end
-    it "should get_next_page_url and get_previous_page_url for valid url " do
+    it "should get_next_page_url for valid url " do
 
       # let's start with the 2nd page
       doc = @source_website.send(:get_doc, @source_website.url_where_fetch_starts)
@@ -74,22 +43,18 @@ describe SourceWebsite do
       page_3_url = @source_website.get_next_page_url(doc)
       page_3_url.should_not be_nil
 
-      # then should get 2nd page as the 'previous page'
-      doc = @source_website.send(:get_doc, page_3_url)
-      @source_website.get_previous_page_url(doc).should == page_2_url
     end
-    it "should return nil if no next_page_url/previous_page_url found " do
+    it "should return nil if no next_page_url found " do
       doc = @source_website.send :get_doc, 'file://spec/fixtures/page_without_next_page_link.html'
       @source_website.get_next_page_url(doc).should == nil
     end
 
     it "consider the max_pages_per_fetch" do
-      max_records_in_a_page = 40
       max_pages_per_fetch = 3
       @source_website.update_attribute(:max_pages_per_fetch , max_pages_per_fetch)
       @source_website.fetch_items(:enable_max_pages_per_fetch => true)
-      Item.all.size.should > 100
-      (2*max_records_in_a_page .. 3*max_records_in_a_page).include?(Item.all.size).should == true
+      #Item.all.size.should > 2*@max_records_in_a_test_page
+      (2*@max_records_in_a_test_page.. 3*@max_records_in_a_test_page).include?(Item.all.size).should == true
     end
 
     it "should_stop_reading_for_the_next_page if next_page_url is blank, or reached max_pages_per_fetch" do
@@ -106,19 +71,18 @@ describe SourceWebsite do
       @source_website.send(:"should_stop_reading_for_the_next_page?", "valid_addr", option).should == true
     end
     it "should consider the last_fetched_item_url, assume the last_fetched_item_url is on 2nd page,
-        the last but 8 ( -9 in Chinese ^_^ )" do
+        the last but 3 ( -4 in Chinese ^_^ )" do
       doc = @source_website.send :get_doc, @source_website.url_where_fetch_starts
       next_page_url = @source_website.get_next_page_url(doc)
-      last_fetched_item = @source_website.get_entries(:target_url => next_page_url)[-9]
+      last_fetched_item = @source_website.get_entries(:target_url => next_page_url)[-4]
       last_fetched_item_url = Item.get_original_url(last_fetched_item, @source_website)
       @source_website.update_attribute(:last_fetched_item_url, last_fetched_item_url)
       @source_website.update_attribute(:max_pages_per_fetch, 3)
       @source_website.fetch_items(:enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true)
-      max_records_in_a_page = 37
-      Item.all.size.should < 2 * max_records_in_a_page
+      Item.all.size.should < 2 * @max_records_in_a_test_page
     end
 
-    it "should consider the max_items_per_fetch, e.g. max_records_in_a_page is 37, and let's set the
+    it "should consider the max_items_per_fetch, e.g. max_records_in_a_test_page is #{@max_records_in_a_test_page}, and let's set the
       max_items_per_fetch = 50  ( in page2), then the fetch should stop after fetch 50th item " do
       max_items_per_fetch = 50
       @source_website.update_attribute(:max_items_per_fetch, max_items_per_fetch)
@@ -128,7 +92,7 @@ describe SourceWebsite do
   end
 
   it "should get_items_list" do
-    @source_website.get_entries.size.should > 30
+    @source_website.get_entries.size.should > 0
   end
   describe "private methods" do
     it "should get_doc" do

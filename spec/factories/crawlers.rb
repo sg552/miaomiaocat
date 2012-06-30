@@ -7,6 +7,6 @@ FactoryGirl.define do
     max_pages_per_fetch 30
     max_items_per_fetch 10000
     status ""
-    #source_website Factory.build(:source_website)
+    source_website
   end
 end

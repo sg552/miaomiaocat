@@ -2,7 +2,7 @@ class SourceWebsite
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  embedded_in :crawler
+  belongs_to :crawler
 
   field :name, :type => String
   field :url, :type => String
@@ -73,7 +73,7 @@ class SourceWebsite
       :enable_max_pages_per_fetch => true)
 
     logger.info "now fetching: #{self.name}"
-    if self.status == STATUS_BEING_FETCHED
+    if crawler.status == STATUS_BEING_FETCHED
       warning = "the source_website #{self.name} is being fetched... please stop it if you want another fetch"
       logger.info warning
       raise warning
@@ -83,7 +83,7 @@ class SourceWebsite
       logger.info warning
       raise warning
     end
-    update_attribute(:status, STATUS_BEING_FETCHED)
+    crawler.update_attribute(:status, STATUS_BEING_FETCHED)
     logger.debug "-- last_fetched_item_url: "
     logger.debug "-- \n #{last_fetched_item_url.split(LAST_N_URL_SEPARATOR).join("\n")}" unless last_fetched_item_url.blank?
     begin
@@ -93,7 +93,7 @@ class SourceWebsite
       logger.error e
       logger.error e.backtrace.join("\n")
     ensure
-      update_attribute(:status, nil)
+      crawler.update_attribute(:status, nil)
       save_last_fetched_info
     end
   end
@@ -103,19 +103,11 @@ class SourceWebsite
     return get_doc(option[:target_url]).css(option[:css])
   end
 
-  # dynamically define methods:
-  # get_next_page_url
-  # get_previous_page_url
-  # usage:
-  #   doc = @source_website.send :get_doc, 'ooxxooxx'
-  #   next_page_url = get_next_page_url(doc)
-  ["next", "previous"].each do |some|
-    define_method :"get_#{some}_page_url" do |nokogiri_doc|
-      target_element = nokogiri_doc.css(send(:"#{some}_page_css"))
-      return nil if target_element.blank?
-      href = target_element.attribute("href").to_s
-      return href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
-    end
+  def get_next_page_url(nokogiri_doc)
+    target_element = nokogiri_doc.css(send("next_page_css"))
+    return nil if target_element.blank?
+    href = target_element.attribute("href").to_s
+    return href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
   end
 
   def fectch_items_as_thread(options = {})
@@ -136,7 +128,7 @@ class SourceWebsite
     is_to_stop = false
     items_count_of_this_fetch = source_website_object.instance_variable_get(:@items_count_of_this_fetch)
     if options[:enable_max_items_per_fetch] == true &&
-        items_count_of_this_fetch == source_website_object.max_items_per_fetch.to_i
+        items_count_of_this_fetch == source_website_object.crawler.max_items_per_fetch.to_i
       is_to_stop = true
       logger.info "--(name:#{name}) stop: reached max_items_per_fetch. ( items_count_of_this_fetch: #{items_count_of_this_fetch}"
     end
@@ -150,9 +142,9 @@ class SourceWebsite
 
   def should_stop_reading_for_the_next_page?(next_page_url, options)
     result = next_page_url.blank? ||
-      (options[:enable_max_pages_per_fetch] == true && @pages_count_for_this_fetch > max_pages_per_fetch)
+      (options[:enable_max_pages_per_fetch] == true && @pages_count_for_this_fetch > crawler.max_pages_per_fetch)
     if result
-      logger.info "--(name: #{name}) should stop: reach max_pages_per_fetch: #{max_pages_per_fetch}"
+      logger.info "--(name: #{name}) should stop: reach max_pages_per_fetch: #{crawler.max_pages_per_fetch}"
       logger.debug "next_page_url :#{next_page_url}, (should not be blank)"
       logger.debug "@pages_count_for_this_fetch: #{@pages_count_for_this_fetch}"
     end

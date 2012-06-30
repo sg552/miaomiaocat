@@ -2,7 +2,7 @@ class Crawler
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  embeds_one :source_website
+  has_one :source_website
 
   field :name, :type => String
   field :url_where_fetch_starts, :type => String
