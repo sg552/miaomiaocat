@@ -25,6 +25,7 @@ class SourceWebsitesController < ApplicationController
   # GET /source_websites/new.json
   def new
     @source_website = SourceWebsite.new
+    @source_website.build_crawler
 
     respond_to do |format|
       format.html # new.html.erb
@@ -34,6 +35,10 @@ class SourceWebsitesController < ApplicationController
 
   # GET /source_websites/1/edit
   def edit
+    if @source_website.crawler.blank?
+      crawler = Crawler.create!
+      @source_website.update_attributes :crawler_id => crawler.id
+    end
   end
 
   # POST /source_websites

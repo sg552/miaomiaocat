@@ -1,6 +1,5 @@
 FactoryGirl.define do
   factory :crawler do
-    name "crawler of 58.com"
     url_being_fetched "url that is being fetched"
     last_fetched_on "2012-06-29"
     last_fetched_item_url "aaabbbccc"

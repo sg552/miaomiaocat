@@ -4,5 +4,6 @@ MiaomiaoCat::Application.routes.draw do
       post :fetch
     end
   end
+  resources :crawlers
   resources :items
   root :to => 'items#index'end

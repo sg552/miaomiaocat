@@ -8,7 +8,6 @@ class Crawler
   INVALID_CSS_SEPARATOR = ';'
   RUNNING = "being fetched"
 
-  field :name, :type => String
   field :url_being_fetched, :type => String
   field :last_fetched_on, :type => DateTime
   field :last_fetched_item_url, :type => String
@@ -34,14 +33,14 @@ class Crawler
       :enable_last_fetched_item_url => true ,
       :enable_max_pages_per_fetch => true)
 
-    logger.info "now fetching: #{self.name}"
+    logger.info "now fetching: #{source_website.name}"
     if status == RUNNING
-      warning = "the source_website #{self.name} is being fetched... please stop it if you want another fetch"
+      warning = "the source_website #{source_website.name} is being fetched... please stop it if you want another fetch"
       logger.info warning
       raise warning
     end
     if invalid_item_list_css?
-      warning = "the source_website #{self.name} seems has no entries, is the css: /#{source_website.items_list_css}/ correct? "
+      warning = "the source_website #{source_website.name} seems has no entries, is the css: /#{source_website.items_list_css}/ correct? "
       logger.info warning
       raise warning
     end
@@ -62,7 +61,7 @@ class Crawler
 
   def fectch_items_as_thread(options = {})
     options = options.reverse_merge(:sleep_time => Settings.crawler.default_sleep_time)
-    logger.info "-- now starts fetching: #{self.name}"
+    logger.info "-- now starts fetching: #{source_website.name}"
     loop do
       fetch_items(options)
       logger.info "-- now sleep #{options[:sleep_time]}s for the next fetch."
@@ -103,13 +102,13 @@ class Crawler
         url_being_fetched = next_page_url
         @pages_count_for_this_fetch += 1
         if should_stop_reading_for_the_next_page?(next_page_url, options)
-          logger.info "-- (name: #{name}) should stop:because of: reached max pages?: true"
+          logger.info "stop: reached max_pages_per_fetch: #{max_pages_per_fetch}"
           break
         end
       end
     end
     @items_to_create.compact.reverse.each { |item| item.save }
-    logger.info "== a fetch(#{name}) is done, items_to_create: #{@items_to_create.size} saved"
+    logger.info "== fetch done, items_to_create: #{@items_to_create.size} saved"
   end
   def invalid_item_list_css?
     return source_website.items_list_css.blank? || self.get_entries.blank?
@@ -130,11 +129,11 @@ class Crawler
     items_count_of_this_fetch = @items_count_of_this_fetch
     if options[:enable_max_items_per_fetch] == true && items_count_of_this_fetch == max_items_per_fetch.to_i
       is_to_stop = true
-      logger.info "--(name:#{name}) stop: reached max_items_per_fetch. ( items_count_of_this_fetch: #{items_count_of_this_fetch}"
+      logger.info "stop: reached max_items_per_fetch. ( items_count_of_this_fetch: #{items_count_of_this_fetch})"
     end
     if options[:enable_last_fetched_item_url] == true &&
           last_fetched_item_url.try(:include?, original_url)
-      logger.info "--(name:#{name}) stop: last_fetched_item_url reached: #{original_url} "
+      logger.info "stop: last_fetched_item_url reached: #{original_url} "
       is_to_stop = true
     end
     throw :stop_the_entire_fetch if is_to_stop
@@ -145,7 +144,7 @@ class Crawler
       (options[:enable_max_pages_per_fetch] == true &&
       @pages_count_for_this_fetch > self.max_pages_per_fetch)
     if result
-      logger.info "--(name: #{name}) should stop: reach max_pages_per_fetch: #{self.max_pages_per_fetch}"
+      logger.info "stop: reach max_pages_per_fetch: #{self.max_pages_per_fetch}"
       logger.debug "next_page_url :#{next_page_url}, (should not be blank)"
       logger.debug "@pages_count_for_this_fetch: #{@pages_count_for_this_fetch}"
     end

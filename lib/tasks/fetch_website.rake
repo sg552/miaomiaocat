@@ -11,6 +11,6 @@ end
 task :fetch_items_for_the_first_website => :environment do
   source_website = SourceWebsite.where(:url_where_fetch_starts => "http://bj.58.com/hezu/").to_a.first
   Thread.new {
-    source_website.fectch_items_as_thread
+    source_website.crawler.fectch_items_as_thread
   }.join
 end
