@@ -14,7 +14,11 @@ class Item
       :original_url => original_url,
       :source_website => source_website
     )
-    logger.debug "newed item: original_url: #{original_url}"
+    if item.valid?
+      source_website.logger.debug "newed item: original_url: #{original_url}"
+    else
+      source_website.logger.debug "newed item: original_url: #{original_url}(in valid)"
+    end
     return item
   end
   def self.get_original_url(html_content, source_website)

@@ -1,3 +1,4 @@
+require 'lib/crawler_logger_decorator'
 class Crawler
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -16,33 +17,7 @@ class Crawler
   field :max_items_per_fetch, :type => Integer
   field :status, :type => String
 
-  # core method
-  def fetch_items(options ={})
-    @items_to_create = []
-    @items_count_of_this_fetch = 0
-    @pages_count_for_this_fetch = 1
-    next_page_url = ""
-    url_being_fetched = source_website.url_where_fetch_starts
-    catch(:stop_the_entire_fetch) do
-      loop do
-        logger.debug "saving page: #{@pages_count_for_this_fetch}"
-        nokogiri_doc= get_doc(url_being_fetched)
-        save_items_for_current_url_that_being_fetched(nokogiri_doc, options, @items_to_create)
-        next_page_url = self.get_next_page_url nokogiri_doc
-        url_being_fetched = next_page_url
-        @pages_count_for_this_fetch += 1
-        if should_stop_reading_for_the_next_page?(next_page_url, options)
-          logger.info "-- (name: #{name}) should stop:because of: reached max pages?: true"
-          break
-        end
-      end
-    end
-    @items_to_create.reverse.each { |item| item.save! }
-    logger.info "== a fetch(#{name}) is done, items_to_create: #{@items_to_create.size} saved"
-  end
 
-  # ... a test for "around alias"
-  alias_method  :original_fetch_items, :fetch_items
   # This is the core method for fetching items
   #
   # ==== Examples
@@ -74,7 +49,7 @@ class Crawler
     logger.debug "-- last_fetched_item_url: "
     logger.debug "-- \n #{last_fetched_item_url.split(LAST_N_URL_SEPARATOR).join("\n")}" unless last_fetched_item_url.blank?
     begin
-      original_fetch_items(options)
+      fetch_items_list_strategy(options)
     rescue Exception => e
       puts "exception: #{e}, more details, please check the log"
       logger.error e
@@ -106,7 +81,36 @@ class Crawler
     href = target_element.attribute("href").to_s
     return href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
   end
+
+  #alias_method :rails_logger, :logger
+  def logger
+    return CrawlerLoggerDecorator.new(Rails.logger, self)
+  end
   private
+  # core method
+  def fetch_items_list_strategy(options ={})
+    @items_to_create = []
+    @items_count_of_this_fetch = 0
+    @pages_count_for_this_fetch = 1
+    next_page_url = ""
+    url_being_fetched = source_website.url_where_fetch_starts
+    catch(:stop_the_entire_fetch) do
+      loop do
+        logger.debug "saving page: #{@pages_count_for_this_fetch}"
+        nokogiri_doc= get_doc(url_being_fetched)
+        save_items_for_current_url_that_being_fetched(nokogiri_doc, options, @items_to_create)
+        next_page_url = self.get_next_page_url nokogiri_doc
+        url_being_fetched = next_page_url
+        @pages_count_for_this_fetch += 1
+        if should_stop_reading_for_the_next_page?(next_page_url, options)
+          logger.info "-- (name: #{name}) should stop:because of: reached max pages?: true"
+          break
+        end
+      end
+    end
+    @items_to_create.reverse.each { |item| item.save! }
+    logger.info "== a fetch(#{name}) is done, items_to_create: #{@items_to_create.size} saved"
+  end
   def invalid_item_list_css?
     return source_website.items_list_css.blank? || self.get_entries.blank?
   end

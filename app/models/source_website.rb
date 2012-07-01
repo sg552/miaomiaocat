@@ -15,4 +15,7 @@ class SourceWebsite
   field :invalid_item_css_patterns, :type => String
 
   has_many :items
+  def logger
+    crawler.logger
+  end
 end
