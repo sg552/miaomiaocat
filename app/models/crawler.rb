@@ -3,7 +3,7 @@ class Crawler
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  has_one :source_website
+  has_one :source_website, :validate => false
   LAST_N_URL_SEPARATOR = '###'
   INVALID_CSS_SEPARATOR = ';'
   RUNNING = "being fetched"
@@ -54,7 +54,7 @@ class Crawler
       logger.error e
       logger.error e.backtrace.join("\n")
     ensure
-      update_attribute(:status, nil)
+      update_attribute(:status, "")
       save_last_fetched_info
     end
   end
@@ -107,7 +107,8 @@ class Crawler
         end
       end
     end
-    @items_to_create.compact.reverse.each { |item| item.save }
+    @items_to_create = @items_to_create.compact
+    @items_to_create.reverse.each { |item| item.save }
     logger.info "== fetch done, items_to_create: #{@items_to_create.size} saved"
   end
   def invalid_item_list_css?

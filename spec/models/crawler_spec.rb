@@ -255,4 +255,14 @@ describe Crawler do
     @crawler.last_fetched_item_url.gsub("file://spec", "").should ==
       ["item1_url", "item2_url", "item3_url", "url_a1", "url_a2"].join(Crawler::LAST_N_URL_SEPARATOR)
   end
+
+  it "should work if found duplicated items, e.g.:
+    fetched items in database already:
+    itemb - url: abc
+    items to be fetched:
+    item1
+    item2 - url: abc ( which is invalid and duplicated)
+    item3" do
+    flunk "implement me"
+  end
 end
