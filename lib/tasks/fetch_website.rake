@@ -2,7 +2,7 @@ task :fetch_items => :environment do
   threads = []
   SourceWebsite.all.each do |source_website|
     threads << Thread.new {
-      source_website.fectch_items_as_thread
+      source_website.crawler.fectch_items_as_thread
     }
   end
   threads.each { |thread| thread.join}
