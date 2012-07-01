@@ -82,11 +82,11 @@ class Crawler
     return href.start_with?("http") ? href : get_base_domain_name_of_current_page + href
   end
 
-  #alias_method :rails_logger, :logger
   def logger
     return CrawlerLoggerDecorator.new(Rails.logger, self)
   end
   private
+
   # core method
   def fetch_items_list_strategy(options ={})
     @items_to_create = []
@@ -108,7 +108,7 @@ class Crawler
         end
       end
     end
-    @items_to_create.reverse.each { |item| item.save! }
+    @items_to_create.compact.reverse.each { |item| item.save }
     logger.info "== a fetch(#{name}) is done, items_to_create: #{@items_to_create.size} saved"
   end
   def invalid_item_list_css?

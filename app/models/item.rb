@@ -16,10 +16,11 @@ class Item
     )
     if item.valid?
       source_website.logger.debug "newed item: original_url: #{original_url}"
+      return item
     else
-      source_website.logger.debug "newed item: original_url: #{original_url}(in valid)"
+      source_website.logger.warn "duplicated item found: original_url #{original_url}, return nil"
+      return nil
     end
-    return item
   end
   def self.get_original_url(html_content, source_website)
     url = html_content.css(source_website.item_detail_page_url_css).attribute("href").to_s
