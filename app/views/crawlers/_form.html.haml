@@ -1,0 +1,18 @@
+= form_for @crawler do |f|
+  .field
+    = f.label :max_pages_per_fetch
+    = f.text_field :max_pages_per_fetch
+  .field
+    = f.label :max_items_per_fetch
+    = f.text_field :max_items_per_fetch
+  .field
+    = f.label :status, "状态（不用填）"
+    = f.text_field :status
+  .field
+    = f.label :last_fetched_item_url, "最后搜索的URL(不用填)"
+    = f.text_field :last_fetched_item_url
+  .field
+    = f.label :last_fetched_on, "最后搜索的时间(不用填）"
+    = f.text_field :last_fetched_on
+  .actions
+    = f.submit

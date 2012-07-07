@@ -2,14 +2,21 @@ class ItemsController < ApplicationController
   # GET /items
   # GET /items.json
   def index
-    @key_word = params[:key_word]
-    #@items = Item.where(:content =>/#{@key_word}/).desc(:created_at).page params[:page]
-    if params[:key_word].blank?
-      @items = Item.desc(:_id).page params[:page]
-    else
-      #@items = Item.tire.search(params[:key_word]).page(params[:page])
-      @items = Item.tire.search(params[:key_word], :page => (params[:page] || 1))
+    page = params[:page] || 1
+    key_word = params[:key_word] || ""
+    per_page = params[:per_page] || 50
+    s = Tire.search 'items' do
+      unless key_word.blank?
+        query do
+          string(key_word)
+        end
+      end
+      sort { by :created_at, 'desc' }
+      size per_page
+      from (page.to_i - 1) * per_page
     end
+    @items = s.results
+    @key_word = key_word
     respond_to do |format|
       format.html # index.html.erb
       format.json { render :json => @items }

@@ -25,6 +25,7 @@ class SourceWebsitesController < ApplicationController
   # GET /source_websites/new.json
   def new
     @source_website = SourceWebsite.new
+    @source_website.build_crawler
 
     respond_to do |format|
       format.html # new.html.erb
@@ -34,6 +35,10 @@ class SourceWebsitesController < ApplicationController
 
   # GET /source_websites/1/edit
   def edit
+    if @source_website.crawler.blank?
+      crawler = Crawler.create!
+      @source_website.update_attributes :crawler_id => crawler.id
+    end
   end
 
   # POST /source_websites
@@ -78,9 +83,9 @@ class SourceWebsitesController < ApplicationController
   end
 
   # POST
+  # TODO DEPRECATED?
   def fetch
-    @source_website.fetch_items(:enable_max_items_per_fetch => true,
-      :enable_last_fetched_item_url => true, :enable_max_pages_per_fetch => true)
+    @source_website.crawler.fetch_items
     render :text => "fetching..."
   end
   private

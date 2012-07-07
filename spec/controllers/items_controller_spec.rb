@@ -11,6 +11,7 @@ describe ItemsController  do
   end
 
   it "should get landing page with key_word" do
+    pending "how to test the landing page?"
     key_word = 333
     @item.update_attribute(:content , "some content ..containing #{key_word} ..")
 
