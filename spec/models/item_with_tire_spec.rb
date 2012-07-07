@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Item do
+describe 'articles' do
   before do
     articles = [
       { :id => '1', :type => 'article', :title => 'one',   :tags => ['ruby']           },
@@ -22,13 +22,6 @@ describe Item do
     end
   end
 
-  it "should create" do
-    index = Tire::Index.new "wokao"
-    index.delete
-    index.create
-    index.store :title => "wo le ge qu~"
-    index.refresh
-  end
   it "should query" do
     s = Tire.search 'articles' do
       query do
