@@ -258,11 +258,20 @@ describe Crawler do
 
   it "should work if found duplicated items, e.g.:
     fetched items in database already:
-    itemb - url: abc
+    itemb - url: item1_page1_url
+
     items to be fetched:
     item1
-    item2 - url: abc ( which is invalid and duplicated)
-    item3" do
-    flunk "implement me"
+    item2 - url: item1_page1_url ( which is invalid and duplicated)
+    item3
+    ...
+    item10
+    " do
+    Item.create(:original_url => "file://specitem1_page1_url")
+    @source_website.update_attributes(
+      :url_where_fetch_starts => "file://spec/fixtures/page1_the_simplest.html",
+      :next_page_css => nil)
+    @crawler.fetch_items
+    Item.all.size.should == 10
   end
 end
