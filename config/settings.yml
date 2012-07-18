@@ -12,3 +12,7 @@ crawler:
   default_count_of_last_fetched_urls: 20
   # seconds
   default_sleep_time: 60
+
+tire:
+  url: 'http://192.168.1.35:9200'
+  logger: 'log/tire.log'
