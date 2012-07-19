@@ -32,9 +32,4 @@ class Item
   def to_indexed_json
     original_to_indexed_json.gsub!(/\\u([0-9a-z]{4})/) {|s| [$1.to_i(16)].pack("U")}
   end
-
-  ## for tire's import
-  #def self.paginate args
-  #  self.page args
-  #end
 end
