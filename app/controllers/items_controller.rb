@@ -10,15 +10,15 @@ class ItemsController < ApplicationController
         query do
           string(key_word)
         end
+        highlight :content, :options => { :tag => '<span class="highlight">'}
       end
+      min_score "0.2"
       sort {
         by :_score, 'desc'
         by :created_at, 'desc'
       }
       size per_page
       from (page.to_i - 1) * per_page
-      highlight :content, :options => { :tag => '<span class="highlight">'}
-      min_score "0.2"
     end
     @items = s.results
     @key_word = key_word

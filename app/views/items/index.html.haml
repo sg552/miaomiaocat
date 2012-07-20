@@ -1,0 +1,27 @@
+%h1 租房信息列表
+= form_tag items_path, :method => :get, :class => "form-search" do
+  = text_field_tag "key_word", @key_word, :class => "input-medium search-query",:style => "width: 300px",
+    :placeholder=>"搜索条件，多的用空格分开，比如：东直门 个人"
+  = submit_tag "搜索", :class => "btn"
+= page_entries_info @items
+= paginate @items, :theme => 'twitter-bootstrap'
+
+%table.table.table-striped
+  %thead
+    %tr
+      %th 来源网站
+      %th 信息提要
+      %th{ :style=>"width:80px"} 抓取日期
+  %tbody
+  - @items.each do |item|
+    - source_website = SourceWebsite.find(item.source_website_id) if SourceWebsite.exists?( :conditions => { :id => item.source_website_id})
+    %tr
+      %td
+        = link_to source_website.try(:name), source_website.try(:url_where_fetch_starts), :target => "_blank"
+      %td
+        %pre #{item.sort[0]}
+        - link_name = item.highlight.blank? ? item.content : raw(item.highlight.content)
+        = link_to( link_name, item.original_url, :target => "_blank")
+      %td
+        = DateTime.strptime(item.created_at, "%Y-%m-%dT%H:%M:%S+08:00").strftime("%Y-%m-%d %H:%M:%S")
+= paginate @items, :theme => 'twitter-bootstrap'
