@@ -1,0 +1,24 @@
+%h1 来源站点
+
+%table.table.table-striped
+  %tr
+    %th{:style => "width:150px"}名字
+    %th 开始URL
+    %th{:style=> "width: 80px"} 最近一次抓取的时间
+    %th{:style=> "width: 100px"}最近一次抓取的信息
+    %th 状态
+    %th 操作
+  - @source_websites.each do |source_website|
+    %tr
+      %td #{link_to source_website.name, source_website}
+      %td
+        = link_to source_website.url_where_fetch_starts, source_website.url_where_fetch_starts, :target => "_blank"
+      %td #{source_website.last_fetched_on}
+      %td #{truncate source_website.last_fetched_item_url, :length => 50}
+      %td #{source_website.status}
+      %td
+        = link_to 'Edit', edit_source_website_path(source_website)
+        = link_to 'Destroy', source_website, :confirm => 'Are you sure?', :method => :delete
+        = link_to 'Fetch', fetch_source_website_path(source_website), :method => :post, :confirm => 'Are you sure?'
+
+%br #{ link_to 'New Source website', new_source_website_path}
