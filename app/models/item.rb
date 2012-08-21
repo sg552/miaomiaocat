@@ -6,6 +6,7 @@ class Item
   field :content, :type => String
   field :original_url, :type => String
   belongs_to :source_website
+  belongs_to :location
   validates_uniqueness_of :original_url, :message => "original_url duplicated!"
 
   def self.new_by_html(html_content, source_website)
