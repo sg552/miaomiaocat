@@ -21,4 +21,15 @@ describe Location do
     location.items.should == [a,b,c]
     a.location.should == location
   end
+
+  it "should define as: district, business_circle, residential " do
+    chaoyang = District.new(:name => "Chaoyang")
+    chaoyang._type.should == District.to_s
+  end
+
+  it "should fetch locations" do
+    url = "spec/fixtures/district_names_page.html"
+    Location.fetch_all(url)
+    Location.all.size.should > 200
+  end
 end

@@ -28,6 +28,9 @@ class Crawler
   # * <tt>:enable_max_items_per_fetch</tt> -  true/false , default is true.
   # * <tt>:enable_last_fetched_item_url</tt> - true/false, default is true.
   # * <tt>:enable_max_pages_per_fetch</tt> - true/false, default is true.
+  # # TODO use template pattern for:   ?
+  # 1. items_crawler
+  # 2. districts_crawler
   def fetch_items(options = {})
     options = options.reverse_merge(:enable_max_items_per_fetch => true,
       :enable_last_fetched_item_url => true ,
